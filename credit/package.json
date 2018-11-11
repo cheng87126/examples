@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "egg": "^2.13.0"
+    "egg": "^2.13.0",
+    "react": "^16.6.1",
+    "react-dom": "^16.6.1"
   },
   "devDependencies": {
     "egg-bin": "^4.9.0"
