@@ -1,13 +1,15 @@
 {
   "name": "credit",
   "version": "1.0.0",
-  "description": "",
+  "description": "credit",
   "main": "index.js",
   "scripts": {
     "dev": "egg-bin dev",
+    "watch": "webpack --watch --mode=development",
+    "start": "webpack-dev-server --open --mode=development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "cheng87126",
   "license": "ISC",
   "dependencies": {
     "egg": "^2.13.0",
@@ -15,6 +17,17 @@
     "react-dom": "^16.6.1"
   },
   "devDependencies": {
-    "egg-bin": "^4.9.0"
+    "@babel/core": "^7.1.5",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.4",
+    "babel-preset-env": "^1.7.0",
+    "clean-webpack-plugin": "^0.1.19",
+    "egg-bin": "^4.9.0",
+    "file-loader": "^2.0.0",
+    "html-webpack-plugin": "^3.2.0",
+    "url-loader": "^1.1.2",
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10"
   }
 }
