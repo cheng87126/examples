@@ -1,0 +1,18 @@
+{
+  "name": "credit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "egg-bin dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "egg": "^2.13.0"
+  },
+  "devDependencies": {
+    "egg-bin": "^4.9.0"
+  }
+}
