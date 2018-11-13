@@ -6,7 +6,7 @@ let config = {
 	entry: './app/public/src/index.js',
 	output: {
 		filename: 'app.js',
-		path: path.resolve(__dirname, '/app/public/dist')
+		path: path.join(__dirname, '/app/public/dist')
 	},
 	module:{
 		rules:[
@@ -38,7 +38,10 @@ let config = {
 			template: './app/view/index.html',
 			inject: true
 		})
-	]
+	],
+	watchOptions: {
+		ignored: /node_modules/
+	}
 }
 
 module.exports = (env, argv)=>{
