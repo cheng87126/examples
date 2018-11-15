@@ -1,12 +1,21 @@
 import React from 'react'
+import { connect } from 'react-redux'
 
-export default class extends React.Component{
+class Head extends React.Component{
 	constructor(props){
 		super(props)
 	}
 	render(){
 		return (
-			<header className="head">信用平台</header>
+			<header className="head">
+				{this.props.title}
+			</header>
 		)
 	}
 }
+
+const mapStateToProps = state =>{
+	return {title:state.headTxt}
+}
+
+export default connect(mapStateToProps)(Head)
