@@ -29,7 +29,8 @@ let config = {
 		]
 	},
 	devServer: {
-		contentBase: './dist'
+		contentBase: './dist',
+		historyApiFallback: true
 	},
 	plugins: [
 		new CleanWebpackPlugin(['dist']),

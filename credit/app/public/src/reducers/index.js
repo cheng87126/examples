@@ -1,5 +1,4 @@
 import { combineReducers } from 'redux'
-import { deflate } from 'zlib';
 
 function counter(num = 0, action) {
 	switch (action.type) {
