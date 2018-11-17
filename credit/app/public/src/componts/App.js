@@ -8,6 +8,7 @@ import {
 import Head from './Head'
 import Footer from './Footer'
 
+import { exposure } from '../api'
 
 const Index = () => (
 	<div>
@@ -43,5 +44,11 @@ export default class extends React.Component{
 				<Footer />
 			</>
 		)
+	}
+	componentDidMount(){
+		exposure.getList()
+			.then(res=>{
+				console.dir(res.data)
+			})
 	}
 }
