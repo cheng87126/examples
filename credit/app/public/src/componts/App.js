@@ -1,20 +1,15 @@
 import React from 'react'
 import {
 	BrowserRouter as Router,
+	Switch,
 	Route,
 	Link
 } from 'react-router-dom'
 
 import Head from './Head'
 import Footer from './Footer'
+import Index from './Index'
 
-import { exposure } from '../api'
-
-const Index = () => (
-	<div>
-		Index
-	</div>
-)
 const My = () => (
 	<div>
 		My
@@ -32,8 +27,10 @@ export default class extends React.Component{
 				<Router>
 					<div>
 						<main className="main">
-							<Route exact path="/" component={Index}/>
-							<Route path="/my" component={My}/>
+							<Switch>
+								<Route exact path="/" component={Index}/>
+								<Route path="/my" component={My}/>
+							</Switch>
 						</main>
 						<ul>
 							<li><Link to="/">head</Link></li>
@@ -44,11 +41,5 @@ export default class extends React.Component{
 				<Footer />
 			</>
 		)
-	}
-	componentDidMount(){
-		exposure.getList()
-			.then(res=>{
-				console.dir(res.data)
-			})
 	}
 }
