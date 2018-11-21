@@ -15,6 +15,9 @@ const My = () => (
 		My
 	</div>
 )
+const Detail = () => (
+	<div>detail</div>
+)
 
 export default class extends React.Component{
 	constructor(props){
@@ -30,6 +33,7 @@ export default class extends React.Component{
 							<Switch>
 								<Route exact path="/" component={Index}/>
 								<Route path="/my" component={My}/>
+								<Route path="/detail" component={Detail}/>
 							</Switch>
 						</main>
 						<ul>

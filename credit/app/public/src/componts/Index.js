@@ -1,4 +1,8 @@
 import React from 'react'
+import { connect } from 'react-redux'
+import {
+	Link
+} from 'react-router-dom'
 
 import { exposure } from '../api'
 
@@ -8,16 +12,18 @@ class Index extends React.Component{
 		this.state = {
 			list:[]
 		}
+		console.log(props)
 	}
 	render(){
-		let { list } = this.state 
+		let { list } = this.state,
+			{ match } = this.props
 		return (
-			<ul>{
-				list.map((i,idx)=>{
+			<ul>
+				{list.map((i,idx)=>{
 					return (
 						<li key={idx}>
 							<div>{i.date}</div>
-							{i.content}
+							<Link to={`${match.url}detail`}>{i.content}</Link>
 						</li>
 					)
 				})}
@@ -25,14 +31,32 @@ class Index extends React.Component{
 		)
 	}
 	componentDidMount(){
-		exposure.getList()
-			.then(res=>{
-				console.log(res.data)
-				this.setState({
-					list:res.data
+		let { exposureList,dispatch } = this.props
+		if(!exposureList.length){
+			exposure.getList()
+				.then(res=>{
+					console.log(res.data)
+					this.setState({
+						list:res.data
+					})
+					dispatch({
+						type:'SET',
+						playload:res.data
+					})
 				})
+		}else{
+			this.setState({
+				list:exposureList
 			})
+		}
+	}
+	componentWillReceiveProps(nextProps){
+
 	}
 }
 
-export default Index
+const mapStateToProps = state =>{
+	return {exposureList:state.exposureList}
+}
+
+export default connect(mapStateToProps)(Index)

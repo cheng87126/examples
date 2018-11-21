@@ -1,13 +1,12 @@
 import { combineReducers } from 'redux'
 
-function counter(num = 0, action) {
+function exposureList(list = [], action) {
 	switch (action.type) {
-		case 'INCREMENT':
-			return num + 1
-		case 'DECREMENT':
-			return num - 1
+		case 'SET':
+			list = action.playload
+			return list
 		default:
-			return num
+			return list
 	}
 }
 
@@ -21,7 +20,7 @@ function headTxt(txt = '信用平台',action){
 }
 
 const appState = combineReducers({
-	counter,
+	exposureList,
 	headTxt	
 })
 
