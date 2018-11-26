@@ -14,12 +14,13 @@ class Index extends React.Component{
 		}
 		console.log(props)
 	}
+	// static getDerivedStateFromProps(nextProps, prevState) {}
 	render(){
 		let { list } = this.state,
-			{ match } = this.props
+			{ match, exposureList } = this.props
 		return (
 			<ul>
-				{list.map((i,idx)=>{
+				{exposureList.map((i,idx)=>{
 					return (
 						<li key={idx}>
 							<div>{i.date}</div>
@@ -30,8 +31,14 @@ class Index extends React.Component{
 			</ul>
 		)
 	}
+	// getSnapshotBeforeUpdate(prevProps, prevState) {}
 	componentDidMount(){
 		let { exposureList,dispatch } = this.props
+		dispatch({
+			type:'LIST_FETCH_REQUESTED',
+			playload:'1024'
+		})
+		/*
 		if(!exposureList.length){
 			exposure.getList()
 				.then(res=>{
@@ -49,9 +56,7 @@ class Index extends React.Component{
 				list:exposureList
 			})
 		}
-	}
-	componentWillReceiveProps(nextProps){
-
+		*/
 	}
 }
 
