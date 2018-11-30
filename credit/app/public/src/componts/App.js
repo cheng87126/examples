@@ -36,7 +36,7 @@ export default class extends React.Component{
 								<Route path="/my" component={My}/>
 								<Route path="/detail" component={
 									Loadable({
-										loader: () => import("./Detail"),
+										loader: () => import(/*webpackChunkName:'Detail'*/'./Detail'),
 										loading:() => (<span>loading...</span>)
 									})
 								}/>
