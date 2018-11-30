@@ -5,6 +5,7 @@ import {
 	Route,
 	Link
 } from 'react-router-dom'
+import Loadable from 'react-loadable'
 
 import Head from './Head'
 import Footer from './Footer'
@@ -15,9 +16,9 @@ const My = () => (
 		My
 	</div>
 )
-const Detail = () => (
-	<div>detail</div>
-)
+// const Detail = () => (
+// 	<div>detail</div>
+// )
 
 export default class extends React.Component{
 	constructor(props){
@@ -33,7 +34,12 @@ export default class extends React.Component{
 							<Switch>
 								<Route exact path="/" component={Index}/>
 								<Route path="/my" component={My}/>
-								<Route path="/detail" component={Detail}/>
+								<Route path="/detail" component={
+									Loadable({
+										loader: () => import("./Detail"),
+										loading:() => (<span>loading...</span>)
+									})
+								}/>
 							</Switch>
 						</main>
 						<ul>
