@@ -8,7 +8,15 @@ class Head extends React.Component{
 	render(){
 		return (
 			<header className="head">
-				{this.props.title}
+				<div>{this.props.title}</div>
+				<style jsx>{`
+					.head{
+						font-size:20px;
+						div{
+							color:#999;
+						}
+					}
+				`}</style>
 			</header>
 		)
 	}

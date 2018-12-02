@@ -22,7 +22,8 @@
     "react-redux": "^5.1.1",
     "react-router-dom": "^4.3.1",
     "redux": "^4.0.1",
-    "redux-saga": "^0.16.2"
+    "redux-saga": "^0.16.2",
+    "styled-jsx": "^3.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.1.5",
@@ -34,6 +35,8 @@
     "egg-bin": "^4.9.0",
     "file-loader": "^2.0.0",
     "html-webpack-plugin": "^3.2.0",
+    "node-sass": "^4.10.0",
+    "styled-jsx-plugin-sass": "^1.0.0",
     "url-loader": "^1.1.2",
     "webpack": "^4.25.1",
     "webpack-bundle-analyzer": "^3.0.3",
