@@ -11,7 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "rxjs": "^6.3.3"
+    "rxjs": "^6.3.3",
+    "spritejs": "^2.26.2"
   },
   "devDependencies": {
     "@babel/core": "^7.1.6",
