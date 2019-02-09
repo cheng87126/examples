@@ -21,14 +21,15 @@ function sign(){
 
 	let s = schedule.scheduleJob(date, ()=>{
 		console.log(new Date())
+
+		fs.appendFile('test', moment().format('YYYY-MM-DD hh:mm:ss a')+ date.dayOfWeek +'\n',  (err) => {
+			if (err) {
+				return console.error(err)
+			}
+		})
+
 		s.cancel()
 		sign()
-	})
-
-	fs.appendFile('test', moment().format('YYYY-MM-DD hh:mm:ss a')+'\n',  (err) => {
-		if (err) {
-			return console.error(err)
-		}
 	})
 }
 sign()
