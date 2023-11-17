@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        canvas{
+            /* width: 1000px;
+            height: 600px; */
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <canvas width="500" height="300"></canvas>
+    <script>
+        ;(function(){
+            const canvasEl = document.querySelector('canvas')
+            const ctx = canvasEl.getContext('2d')
+            const WIDTH = canvasEl.width
+            const HEIGHT = canvasEl.height
+            const R = 100
+            function drawCircle(context,x,y,r){
+                context.beginPath()
+                context.arc(x, y, r, 0, 2 * Math.PI)
+                context.stroke()
+            }
+            function drawLine(context,sx,sy,ex,ey){
+                context.beginPath()
+                context.moveTo(sx,sy)
+                context.lineTo(ex,ey)
+                context.stroke()
+            }
+            function drawNum(){
+                const num = [3,4,5,6,7,8,9,10,11,12,1,2]
+                num.forEach((item,idx)=>{
+                    const ponit = getPoint(WIDTH/2,HEIGHT/2,R+10,idx*(1/6)*Math.PI)
+                    ctx.textAlign = 'center'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText(item, ponit.x, ponit.y)
+                })
+            }
+            function getPoint(a,b,r,deg){
+                const x = a + r * Math.cos(deg)
+                const y = b + r * Math.sin(deg)
+                return {
+                    x,
+                    y
+                }
+            }
+            drawNum()
+            drawCircle(ctx,WIDTH/2,HEIGHT/2,R)
+            ;[0,0.5 * Math.PI,1 * Math.PI,1.5 * Math.PI].forEach((item,idx)=>{
+                const point = getPoint(WIDTH/2,HEIGHT/2,R,item)
+                let ex = 0, ey = 0
+                const lineLen = 10
+                switch(idx){
+                    case 1:
+                    case 3:
+                        ex = point.x
+                        ey = point.y + lineLen*(idx===1?-1:1)
+                        break
+                    case 0:
+                    case 2:
+                        ex = point.x - lineLen*(idx===0?1:-1)
+                        ey = point.y
+                        break
+                }
+                drawLine(ctx,point.x,point.y,ex,ey)
+            })
+        })()
+    </script>
+</body>
+</html>

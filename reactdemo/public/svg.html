@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            margin: 0;
+        }
+        svg{
+            display:block;
+            background-color: #e5e5e5;
+        }
+    </style>
+</head>
+<body>
+    <svg version="1.1" baseProfile="full" width="100vw" height="100vh" xmlns="http://www.w3.org/2000/svg">
+        <polyline points="0 0, 100 100, 200 200" stroke="black" fill="transparent" stroke-width="1"/>
+    </svg>
+    <script>
+        ;(function(){
+            const width = document.querySelector('svg').clientWidth
+            
+            async function getData(){
+                const res = await fetch('./300.json')
+                const data = await res.json()
+                const spaceX = width / (data.length - 1)
+                console.log(spaceX)
+            }
+            getData()
+        })()
+    </script>
+</body>
+</html>

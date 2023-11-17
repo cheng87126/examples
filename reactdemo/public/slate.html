@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        div{
+            height: 300px;
+            border: 1px solid #000;
+        }
+    </style>
+    <script src="https://unpkg.com/slate/dist/slate.min.js"></script>
+</head>
+<body>
+    <div contenteditable></div>
+    <script>
+        ;(function(){
+            const { Editor, Text, createEditor } = Slate
+            const serialize = node => {
+                if (Text.isText(node)) {
+                    let string = node.text//escapeHtml(node.text)
+                    if (node.bold) {
+                        string = `<strong>${string}</strong>`
+                    }
+                    return string
+                }
+
+                const children = node.children.map(n => serialize(n)).join('')
+
+                switch (node.type) {
+                    case 'quote':
+                        return `<blockquote><p>${children}</p></blockquote>`
+                    case 'paragraph':
+                        return `<p>${children}</p>`
+                    case 'link':
+                        return `<a href="${node.url/*escapeHtml(node.url)*/}">${children}</a>`
+                    default:
+                        return children
+                }
+            }
+
+
+            document.addEventListener('DOMContentLoaded', function(){
+                const editor = createEditor()
+                editor.insertNode({
+                  type: 'paragraph',
+                  children: [{
+                    text: 'A string of bold text'
+                  }]
+                })
+                Editor.insertText(editor, 'A new string of text to be inserted.')
+                // editor.apply({
+                //   type: 'insert_text',
+                //   path: [0, 0],
+                //   offset: 15,
+                //   text: 'A new string of text to be inserted.',
+                // })
+                console.log('editor',editor)
+                const div = document.querySelector('div')
+                div.innerHTML = serialize(editor)
+                div.addEventListener('beforeinput', function(e){
+                    e.preventDefault()
+                    div.innerHTML = serialize(editor)
+                },false)
+            },false)
+        })()
+    </script>    
+</body>
+</html>
