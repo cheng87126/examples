@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>hahaha</div>
+    <script>
+        ;(function(){
+            class TreeNode {
+                // val: 0
+                // left: null
+                // right: null
+                constructor(val, left, right) {
+                    this.val = (val===undefined ? 0 : val)
+                    this.left = (left===undefined ? null : left)
+                    this.right = (right===undefined ? null : right)
+                }
+            }
+
+            constructMaximumBinaryTree([3,2,1,6,0,5])
+            function constructMaximumBinaryTree(nums) {
+                let root = null
+                const binaryTree = function(arr,pNode,isLeft=false){
+                    let maxIdx = 0
+                    for(let i=1;i<arr.length;i++){
+                        if(arr[i]>arr[maxIdx]) maxIdx = i
+                    }
+                    const node = new TreeNode(arr[maxIdx])
+                    const left = arr.slice(0,maxIdx)
+                    const right = arr.slice(maxIdx+1,arr.length)
+                    // console.log(node,left,right)
+                    // console.log(pNode)
+                    // debugger
+                    if(!pNode){
+                        // root = node
+                        pNode = node
+                    }else if(isLeft){
+                        pNode.left = node
+                    }else{
+                        pNode.right = node
+                    }
+                    if(left.length) binaryTree(left,node,true)
+                    if(right.length) binaryTree(right,node)
+
+                    // if(left.length) node.left = binaryTree(left,node,true)
+                    // if(right.length) node.right = binaryTree(right,node)
+                    // return node
+                }
+                // return binaryTree(nums,root)
+                binaryTree(nums,root)
+                console.log('root',root)
+                return root
+            }
+        })()
+    </script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.27.2/axios.min.js"></script>
+    <script>
+        ;(function(){
+            /*
+            fetch('/getfile',{
+                method:'post',
+                headers:{responseType: 'blob'}
+            })
+                .then(function(response) {
+                  return response.blob()
+                })
+                .then(function(myBlob) {
+                    // let blob = new Blob([res.data])
+                    let url = URL.createObjectURL(myBlob)
+                    // let url = res.data
+                    console.log(url)
+                    let a = document.createElement('a')
+                    a.style.display = 'none'
+                    a.href = url
+                    a.setAttribute('download','excel.xls')
+                    document.body.appendChild(a)
+                    a.click()
+                })
+                */
+            /*
+            axios({
+                method: 'post',
+                url: '/getfile',
+                data: {},
+                // responseType: 'blob'
+            }).then(res => {
+                console.log(res)
+                if (!res) return
+
+                // let blob = res.data
+                let blob = new Blob([res.data])
+                let url = URL.createObjectURL(blob)
+                // let url = res.data
+                console.log(url)
+                let a = document.createElement('a')
+                a.style.display = 'none'
+                a.href = url
+                a.setAttribute('download','excel.xls')
+                document.body.appendChild(a)
+                // a.click()
+                // window.URL.revokeObjectURL(a.href)
+                // document.body.removeChild(a)
+            }).catch((error) => {
+                console.log(error)
+            })
+            */
+        })()
+    </script>
+</body>
+</html>
