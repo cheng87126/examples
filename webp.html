@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="file" name="file" id="file">
+    <script>
+        ;(function(){
+            document.querySelector('#file').addEventListener('change',function(e){
+                const file = e.target.files[0]
+                const image = new Image()
+                image.onload = () => {
+                  const canvas = document.createElement('canvas')
+                  canvas.width = image.naturalWidth
+                  canvas.height = image.naturalHeight
+                  canvas.getContext('2d').drawImage(image, 0, 0)
+                  canvas.toBlob((blob) => {
+                    const img = new File([blob], 'img.webp', { type: blob.type })
+                    const a = document.createElement('a')
+                    a.download = 'img.webp'
+                    a.href = URL.createObjectURL(img)
+                    a.click()
+                  }, 'image/webp')
+                }
+
+                image.src = URL.createObjectURL(file)
+            },false)
+        })()
+    </script>
+</body>
+</html>
