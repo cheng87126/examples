@@ -1,8 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import {
-  createBrowserRouter,
-  RouterProvider
-} from 'react-router-dom'
+import { useState, useEffect } from 'react';
 import { of, map, interval, take, takeUntil, concatAll, fromEvent } from 'rxjs'
 import dayjs from 'dayjs'
 import isBetween from 'dayjs/plugin/isBetween'
@@ -33,7 +29,7 @@ for(let i=0;i<dateArr.length;i++){
     }
   }
 }
-console.log('dateArr',dateArr)
+// console.log('dateArr',dateArr)
 const rootStore = new RootStore()
 const initialValue = [
   {
@@ -146,18 +142,18 @@ function AppComponent() {
   );
 }
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <AppComponent />
-  },
+// const router = createBrowserRouter([
+//   {
+//     path: '/',
+//     element: <AppComponent />
+//   },
   
-])
-function App(){
+// ])
+// function App(){
 
-  return (
-    <RouterProvider router={router} />
-  )
-}
+//   return (
+//     <RouterProvider router={router} />
+//   )
+// }
 
-export default App;
+export default AppComponent
