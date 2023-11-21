@@ -8,6 +8,7 @@ import {
 import './index.css';
 import App from './App';
 import Tetris from './pages/Tetris'
+import BubbleSort from './pages/BubbleSort'
 import reportWebVitals from './reportWebVitals';
 
 const router = createBrowserRouter([
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
   {
     path: '/tetris',
     element: <Tetris />
+  },
+  {
+    path: '/bubblesort',
+    element: <BubbleSort />
   }
 ])
 
