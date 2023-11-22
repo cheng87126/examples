@@ -1,3 +1,4 @@
+import { flushSync } from 'react-dom'
 import { useEffect, useState } from 'react'
 
 export default function BubbleSort(){
@@ -18,13 +19,16 @@ export default function BubbleSort(){
     }
     let i = 0
     const timer = setInterval(()=>{
-      if(i===ret.length-1){
+      if(i===ret.length){
         clearInterval(timer)
         return
       }
-      setArr(_=>{
-        return [...ret[i]]
+      flushSync(()=>{
+        setArr(_=>{
+          return [...ret[i]]
+        })
       })
+      
       i++
     },1500)
 
