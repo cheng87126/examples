@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        ;(function(){
+            function Pro(fn){
+                this.arr = []
+                this.state = 'pending'
+                this.value = void 0
+                const resolve = (val)=>{
+                    this.state = 'resolve'
+                    this.value = val
+                    this.arr.forEach(item=>{
+                        item(val)
+                    })
+                }
+                fn(resolve)
+            }
+            Pro.prototype.then = function(fn){
+                const p = new Pro((res)=>{
+                    const mergeFn = (val)=>{
+                        const ret = fn(val)
+                        setTimeout(()=>{
+                            res(ret)
+                        },0)
+                    }
+                    if(this.state === 'pending'){
+                        this.arr.push(mergeFn)
+                    }else if(this.state === 'resolve'){
+                        mergeFn(this.value)
+                    }
+                })
+                return p
+            }
+            const pro = new Pro((res)=>{
+                setTimeout(()=>{
+                    res('pro-res')
+                },2000)
+                // res('pro-res')
+            })
+            pro.then((res)=>{
+                console.log('pro-then',res)
+                return 'pro-then--'
+            }).then(res=>console.log('pro-then--',res))
+            pro.then((res)=>{
+                console.log('pro-thenthen',res)
+            })
+        })()
+
+        const p = new Promise((resolve,reject)=>{
+            setTimeout(function(){
+                console.log('resolve')
+                resolve('resolve')
+            },1000)
+        })
+        p.then((res)=>{
+            console.log('res',res)
+            return 'resres'
+        }).then((res)=>console.log('res--',res))
+        p.then((res)=>{
+            console.log('resres',res)
+        })
+    </script>
+</body>
+</html>
