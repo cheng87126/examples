@@ -31,6 +31,16 @@
             add.NumA = 0
             add.NumB = 1
             console.log(add.getResult())
+            class OperationContext {
+                constructor(op){
+                    this.op = op
+                }
+                getResult(){
+                    this.op.getResult()
+                }
+            }
+            const operationCtx = new OperationContext(new OperationAdd())
+            
         })()
     </script>
 </body>
