@@ -41,6 +41,66 @@
             }
             const operationCtx = new OperationContext(new OperationAdd())
             
+            class Person {
+                show(){
+                    console.log('person show')
+                }
+            }
+            class Finery{
+                setPerson(component){
+                    this.component = component
+                }
+                show(){
+                    if(this.component){
+                        this.component.show()
+                    }
+                }
+            }
+            class FineryA extends Finery{
+                show(){
+                    console.log('FineryA')
+                    super.show()
+                }
+            }
+            class FineryB extends Finery{
+                show(){
+                    console.log('FineryB')
+                    super.show()
+                }
+            }
+            const person = new Person()
+            const fineryA = new FineryA()
+            const fineryB = new FineryB()
+            fineryA.setPerson(person)
+            fineryB.setPerson(fineryA)
+            fineryB.show()
+
+            class MM{
+                constructor(name){
+                    this.name = name
+                }
+                getName(){
+                    return this.name
+                }
+            }
+            class GiveGift{
+                constructor(mm){
+                    this.mm = mm
+                }
+                giveDolls(){
+                    console.log(this.mm.getName()+'givedolls')
+                }
+            }
+            class Proxy{
+                constructor(mm){
+                    this.giveGift = new GiveGift(mm)
+                }
+                giveDolls(){
+                    this.giveGift.giveDolls()
+                }
+            }
+            const proxy = new Proxy(new MM('mm'))
+            proxy.giveDolls()
         })()
     </script>
 </body>
