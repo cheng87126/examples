@@ -101,6 +101,18 @@
             }
             const proxy = new Proxy(new MM('mm'))
             proxy.giveDolls()
+            
+            function addFactory(){
+                return new OperationAdd()
+            }
+
+            function Resume(name){
+                this.name = name
+            }
+            Resume.prototype.setInfo = function(age){
+                this.age = age
+            }
+            const resumeA = new Resume('resumeA')
         })()
     </script>
 </body>
