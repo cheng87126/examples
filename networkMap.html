@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body{
+      margin: 0;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://registry.npmmirror.com/three/0.160.0/files/build/three.module.js",
+        "three/addons/": "https://registry.npmmirror.com/three/0.160.0/files/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+    <script type="module">
+      import * as THREE from 'three'
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+      const scene = new THREE.Scene()
+      // const camera = new THREE.OrthographicCamera(-5, 5, 3.75, -3.75, 0.1, 100)
+      const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100 )
+
+      // const axesHelper = new THREE.AxesHelper(100)
+      // scene.add(axesHelper)
+
+      const renderer = new THREE.WebGLRenderer()
+      renderer.setSize( window.innerWidth, window.innerHeight )
+      document.body.appendChild( renderer.domElement )
+      
+
+      const geometry = new THREE.BoxGeometry( 1, 1, 1 )
+      const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } )
+      const cube = new THREE.Mesh( geometry, material )
+      // cube.position.set(0,0,10)
+      scene.add( cube )
+
+      scene.add(sphereGeometry())
+      scene.add(catmullRomCurve3())
+
+      const controls = new OrbitControls(camera,renderer.domElement)
+      controls.addEventListener('change', (e)=>{
+        // cube.rotation.x += 0.01
+      	// cube.rotation.y += 0.01
+
+	      renderer.render( scene, camera )
+      })
+
+      camera.position.z = 5
+      controls.update()
+      renderer.render( scene, camera )
+
+      function sphereGeometry(){
+        const geometry = new THREE.SphereGeometry( 0.5, 32, 16 )
+		    const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } )
+		    const sphere = new THREE.Mesh( geometry, material )
+		    // scene.add( sphere )
+        sphere.position.set(5,2,0)
+        return sphere
+      }
+      function catmullRomCurve3(){
+        const curve = new THREE.CatmullRomCurve3( [
+        	new THREE.Vector3( 0, 0, 0 ),
+          new THREE.Vector3( 3, 1, 0 ),
+        	new THREE.Vector3( 5, 2, 0 )
+        ] )
+        const points = curve.getPoints( 50 )
+        const geometry = new THREE.BufferGeometry().setFromPoints( points )
+
+        const material = new THREE.LineDashedMaterial( { color: 0xffffff } )
+
+        const curveObject = new THREE.Line( geometry, material )
+        return curveObject
+      }
+    </script>
+</body>
+</html>
