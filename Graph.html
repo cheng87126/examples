@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+  <script type="module">
+    function hashTableGraph(){
+      const graph = {
+        you:['bob','claire','alice'],
+        bob:['anuj','peggy'],
+        claire:['thom','jonny'],
+        alice:['peggy'],
+        anuj:[],
+        pgeey:[],
+        thom:[],
+        jonny:[]
+      }
+      const keys = Object.keys(graph)
+      const queue = [...graph['you']]
+      const searched = []
+      while(queue.length){
+        const name = queue.shift()
+        console.log('name',name)
+        if(!searched.includes(name)){
+          if(name==='peggy'){
+            console.log('find')
+            return
+          }else{
+            searched.push(name)
+            queue.push(...graph[name])
+          }
+        }
+      }
+    }
+    hashTableGraph()
+  </script>
+</body>
+</html>
