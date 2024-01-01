@@ -116,23 +116,65 @@
         })()
     </script>
     <script type="module">
-        class Emperor{
-            static emperor = null
+        class Singleton{
+            static singleton = new Singleton()
             static {
                 console.log('static')
             }
             static getInstance(){
-                if(!this.emperor){
-                    this.emperor = new Emperor()
-                }
-                return this.emperor
+                return this.singleton
             }
-            say(){
-                console.log('say')
+            method(){
+                console.log('method')
             }
         }
-        const instance = Emperor.getInstance()
-        instance.say()
+        const instance = Singleton.getInstance()
+        instance.method()
+        
+        class AbstractProduct{
+            methodA(){}
+            methodB(){}
+        }
+        class ProductA extends AbstractProduct{
+            constructor(){
+                super()
+            }
+            methodA(){
+                console.log('ProductA-methodA')
+            }
+            methodB(){
+                console.log('ProductA-methodB')
+            }
+        }
+        class ProductB extends AbstractProduct{
+            constructor(){
+                super()
+            }
+            methodA(){
+                console.log('ProductB-methodA')
+            }
+            methodB(){
+                console.log('ProductB-methodB')
+            }
+        }
+        class Factory{
+            static init(product){
+                switch(product){
+                    case 'a':
+                        return new ProductA()
+                        break
+                    case 'b':
+                        return new ProductB()
+                        break
+                    default:
+                        throw new Error('not found')
+                }
+            }
+        }
+        const productA = Factory.init('a')
+        const productB = Factory.init('b')
+        productA.methodA()
+        productB.methodA()
     </script>
 </body>
 </html>
