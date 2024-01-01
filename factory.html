@@ -115,5 +115,24 @@
             const resumeA = new Resume('resumeA')
         })()
     </script>
+    <script type="module">
+        class Emperor{
+            static emperor = null
+            static {
+                console.log('static')
+            }
+            static getInstance(){
+                if(!this.emperor){
+                    this.emperor = new Emperor()
+                }
+                return this.emperor
+            }
+            say(){
+                console.log('say')
+            }
+        }
+        const instance = Emperor.getInstance()
+        instance.say()
+    </script>
 </body>
 </html>
