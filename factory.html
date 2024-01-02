@@ -175,6 +175,82 @@
         const productB = Factory.init('b')
         productA.methodA()
         productB.methodA()
+        
+        class ProductAa extends AbstractProduct{
+            methodA(){
+                console.log('ProductAa-methodA')
+            }
+        }
+        class ProductAb extends AbstractProduct{
+            methodA(){
+                console.log('ProductAb-methodA')
+            }
+        }
+        class ProductBa extends AbstractProduct{
+            methodA(){
+                console.log('ProductBa-methodA')
+            }
+        }
+        class ProductBb extends AbstractProduct{
+            methodA(){
+                console.log('ProductBb-methodA')
+            }
+        }
+        class AbstractFactory{
+            createA(){}
+            createB(){}
+        }
+        class FactoryA extends AbstractFactory{
+            createA(){
+                return new ProductAa()
+            }
+            createB(){
+                return new ProductBa()
+            }
+        }
+        class FactoryB extends AbstractFactory{
+            createA(){
+                return new ProductAb()
+            }
+            createB(){
+                return new ProductBb()
+            }
+        }
+        const factoryA = new FactoryA()
+        const factoryB = new FactoryB()
+        factoryA.createA().methodA()
+        factoryA.createB().methodA()
+        factoryB.createA().methodA()
+        factoryB.createB().methodA()
+        
+        class AbstractClass{
+            methodA(){}
+            methodB(){}
+            templateMethod(){
+                this.methodA()
+                this.methodB()
+            }
+        }
+        class ClassA extends AbstractClass{
+            methodA(){
+                console.log('ClassA-methodA')
+            }
+            methodB(){
+                console.log('ClassA-methodB')
+            }
+        }
+        class ClassB extends AbstractClass{
+            methodA(){
+                console.log('ClassB-methodA')
+            }
+            methodB(){
+                console.log('ClassB-methodB')
+            }
+        }
+        new ClassA().templateMethod()
+        new ClassB().templateMethod()
+        
+        
     </script>
 </body>
 </html>
