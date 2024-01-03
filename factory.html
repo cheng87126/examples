@@ -250,6 +250,40 @@
         new ClassA().templateMethod()
         new ClassB().templateMethod()
         
+        class AbstractBuilder{
+            setPart(){}
+            getProduct(){}
+        }
+        class BuilderA extends AbstractBuilder{
+            product=new ProductA()
+            setPart(){
+                console.log('set a')
+            }
+            getProduct(){
+                return this.product
+            }
+        }
+        class Director{
+            builder=new BuilderA()
+            getProduct(){
+                this.builder.setPart()
+                return this.builder.getProduct()
+            }
+        }
+        
+        class Subject{
+            request(){
+                console.log('request')
+            }
+        }
+        class Proxy{
+            subject=new Subject()
+            request(){
+                console.log('before')
+                this.subject.request()
+                console.log('after')
+            }
+        }
         
     </script>
 </body>
