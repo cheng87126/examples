@@ -285,6 +285,49 @@
             }
         }
         
+        // prototype
+
+        class Mediator{
+            ca=new ColleagueA()
+            cb=new ColleagueB()
+            cc=new ColleagueC()
+            methodA(){}
+            methodB(){}
+            methodC(){}
+        }
+        class ColleagueA{
+            methodA(){}
+        }
+        class ColleagueB{
+            methodB(){}
+        }
+        class ColleagueC{
+            methodC(){}
+        }
+        
+        class ReceiverA{
+            methodA(){}
+        }
+        class ReveiverB{
+            methodA(){}
+        }
+        class CommandA{
+            setReceiver(receiver){
+                this.receiver = receiver
+            }
+            execute(){
+                this.receiver.methodA()
+            }
+        }
+        class Invoker{
+            setCommand(command){
+                this.command = command
+            }
+            action(){
+                this.command.execute()
+            }
+        }
+        
     </script>
 </body>
 </html>
