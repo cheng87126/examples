@@ -328,6 +328,48 @@
             }
         }
         
+        class Request{
+            level=0
+            method(){
+                console.log('request method')
+            }
+        }
+        class Handler{
+            nextHandler=null
+            level=0
+            handleMessage(request){
+                if(this.level===request.level){
+                    console.log(request.method())
+                }else if(this.nextHandler){
+                    this.nextHandler.handleMessage(request)
+                }
+            }
+            setNextHandler(handler){
+                this.nextHandler = handler
+            }
+            setLevel(level){
+                this.level = level
+            }
+        }
+        const handlerA = new Handler().setLevel(0)
+        const handlerB = new Handler().setLevel(1)
+        handlerA.setNextHandler(handlerB)
+        handlerA.handleMessage(new Request())
+
+        class Component{
+            operate(){}
+        }
+        class Decorator{
+            component=null
+            constructor(component){
+                this.component = component
+            }
+            operate(){
+                console.log('decorator')
+                this.component.operate()
+            }
+        }
+
     </script>
 </body>
 </html>
