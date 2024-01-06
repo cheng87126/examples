@@ -370,6 +370,40 @@
             }
         }
 
+        class Strategy{
+            method(){ }
+        }
+        class StrategyA{
+            method(){
+                console.log('StrategyA')
+            }
+        }
+        class Context{
+            strategy=null
+            constructor(strategy){
+                this.strategy = strategy
+            }
+            method(){
+                this.strategy.method()
+            }
+        }
+
+        class Target{
+            request(){}
+        }
+        class Adaptee{
+            method(){}
+        }
+        class Adapter{
+            adaptee=null
+            constructor(adaptee){
+                this.adaptee = adaptee
+            }
+            request(){
+                this.adaptee.method()
+            }
+        }
+
     </script>
 </body>
 </html>
