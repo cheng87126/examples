@@ -404,6 +404,22 @@
             }
         }
 
+        // iterator
+
+        class CompositeComponent{
+            method(){}
+        }
+        class Composite extends CompositeComponent{
+            list=[]
+            add(composite){
+                this.list.push(composite)
+            }
+            remove(){}
+            getChildren(){}
+        }
+        class Leaf extends CompositeComponent{
+            method(){}
+        }
     </script>
 </body>
 </html>
