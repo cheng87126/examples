@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script type="module">
+    function gcd(m,n){
+      while(n!==0){
+        const r = m % n
+        m = n
+        n = r
+      }
+      return m
+    }
+    console.log(gcd(60,24))
+  </script>
+  <script type="module">
+    function gcd(m,n){
+      let min = Math.min(m,n)
+      while(min>0){
+        if(!(m%min) && !(n%min)) return min
+        min--
+      }
+    }
+    console.log(gcd(60,24))
+    // console.log(gcd(60,0))
+  </script>
+</body>
+</html>
