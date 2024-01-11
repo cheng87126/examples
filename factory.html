@@ -420,6 +420,42 @@
         class Leaf extends CompositeComponent{
             method(){}
         }
+        
+        class Observeable{
+            list=[]
+            add(observer){
+                this.list.push(observer)
+            }
+            del(){}
+            notify(){
+                list.forEach(item=>item.method())
+            }
+        }
+        class Oberver{
+            method(){
+                console.log('Oberver')
+            }
+        }
+    
+        class FacadeClassA{
+            method(){
+                console.log('method')
+            }
+        }
+        class FacadeClassB{
+            method(){
+                console.log('method')
+            }
+        }
+        class Facade{
+            a=new FacadeClassA()
+            b=new FacadeClassB()
+            method(){
+                this.a.method()
+                this.b.method()
+            }
+        }
+
     </script>
 </body>
 </html>
