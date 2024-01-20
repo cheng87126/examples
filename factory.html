@@ -456,6 +456,58 @@
             }
         }
 
+        class Memento{
+            state=''
+            constructor(state){
+                this.state = state
+            }
+            setState(state){
+                this.state = state
+            }
+            getState(){
+                return this.state
+            }
+        }
+        class Originator{
+            state=''
+            setState(state){
+                this.state = state
+            }
+            getState(){
+                return this.state
+            }
+            createMemento(){
+                return new Memento(this.state)
+            }
+            restoreMemento(memento){
+                this.setState(memento.getState())
+            }
+        }
+        class Caretaker{
+            memento=null
+            setMemento(memento){
+                this.memento = memento
+            }
+            getMemento(){
+                return this.memento
+            }
+        }
+        const originator = new Originator()
+        const caretaker = new Caretaker()
+        caretaker.setMemento(originator.createMemento())
+
+        class Element{
+            dosomething(){}
+            accept(visitor){
+                visitor.visit(this)
+            }
+        }
+        class Visitor{
+            visit(element){
+                element.dosomething()
+            }
+        }
+        
     </script>
 </body>
 </html>
