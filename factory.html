@@ -585,6 +585,17 @@
                 }
             }
         }
+        class Insertion extends baseSort{
+            sort(arr){
+                for(let i=0;i<arr.length;i++){
+                    for(let j=i;j>0;j--){
+                        if(this.less(arr[j],arr[j-1])){
+                            this.exch(arr,j-1,j)
+                        }
+                    }
+                }
+            }
+        }
 
         const gen = makeArr()
         function c(){
@@ -595,10 +606,16 @@
                 },300)
             }else{
                 const testArr = ret.value
+                /*
                 const selection = new Selection()
                 selection.show(testArr)
                 selection.sort(testArr)
                 selection.show(testArr)
+                */
+                const insertion = new Insertion()
+                insertion.show(testArr)
+                insertion.sort(testArr)
+                insertion.show(testArr)
             }
         }
         c()
