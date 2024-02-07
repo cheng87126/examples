@@ -596,6 +596,23 @@
                 }
             }
         }
+        class Shell extends baseSort{
+            sort(arr){
+                const N = arr.length
+                let h = 1
+                while(h<N/3) h = 3*h + 1
+                while(h>=1){
+                    for(let i=h;i<N;i++){
+                        for(let j=i;j>=h;j-=h){
+                            if(this.less(arr[j],arr[j-h])){
+                                this.exch(arr,j-h,j)
+                            }
+                        }
+                    }
+                    h = ~~(h/3)
+                }
+            }
+        }
 
         const gen = makeArr()
         function c(){
@@ -612,10 +629,16 @@
                 selection.sort(testArr)
                 selection.show(testArr)
                 */
+                /*
                 const insertion = new Insertion()
                 insertion.show(testArr)
                 insertion.sort(testArr)
                 insertion.show(testArr)
+                */
+                const shell = new Shell()
+                shell.show(testArr)
+                shell.sort(testArr)
+                shell.show(testArr)
             }
         }
         c()
