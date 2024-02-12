@@ -566,7 +566,8 @@
         }
         function* makeArr(){
             const arr = []
-            for(let i=0;i<9;i++){
+            const n = 9
+            for(let i=0;i<n;i++){
                 yield arr.push(~~(Math.random()*100))
             }
             return arr
@@ -613,6 +614,37 @@
                 }
             }
         }
+        class Merge extends baseSort{
+            merge(mergeArr,low,mid,hi){
+                const aux = []
+                for(let i=low;i<=hi;i++){
+                    aux[i] = mergeArr[i]
+                }
+                let i=low, j = mid+1
+                for(let k=low;k<=hi;k++){
+                    if(i>mid){
+                        mergeArr[k] = aux[j]
+                        j++
+                    }else if(j>hi){
+                        mergeArr[k] = aux[i]
+                        i++
+                    }else if(aux[j]<aux[i]){
+                        mergeArr[k] = aux[j]
+                        j++
+                    }else{
+                        mergeArr[k] = aux[i]
+                        i++
+                    }
+                }
+            }
+            sort(arr,low,hi){
+                if(hi<=low) return
+                const mid = ~~((low+hi)/2)
+                this.sort(arr,low,mid)
+                this.sort(arr,mid+1,hi)
+                this.merge(arr,low,mid,hi)
+            }
+        }
 
         const gen = makeArr()
         function c(){
@@ -623,22 +655,34 @@
                 },300)
             }else{
                 const testArr = ret.value
-                /*
+                const selectionArr = testArr.slice()
+                console.time('selection')
                 const selection = new Selection()
-                selection.show(testArr)
-                selection.sort(testArr)
-                selection.show(testArr)
-                */
-                /*
+                selection.show(selectionArr)
+                selection.sort(selectionArr)
+                selection.show(selectionArr)
+                console.timeEnd('selection')
+                const insertionArr = testArr.slice()
+                console.time('insertion')
                 const insertion = new Insertion()
-                insertion.show(testArr)
-                insertion.sort(testArr)
-                insertion.show(testArr)
-                */
+                insertion.show(insertionArr)
+                insertion.sort(insertionArr)
+                insertion.show(insertionArr)
+                console.timeEnd('insertion')
+                const shellArr = testArr.slice()
+                console.time('shell')
                 const shell = new Shell()
-                shell.show(testArr)
-                shell.sort(testArr)
-                shell.show(testArr)
+                shell.show(shellArr)
+                shell.sort(shellArr)
+                shell.show(shellArr)
+                console.timeEnd('shell')
+                const mergeArr =  testArr.slice()
+                console.time('merge')
+                const merge = new Merge()
+                merge.show(mergeArr)
+                merge.sort(mergeArr,0,mergeArr.length-1)
+                merge.show(mergeArr)
+                console.timeEnd('merge')
             }
         }
         c()
