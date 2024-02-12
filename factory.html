@@ -644,6 +644,13 @@
                 this.sort(arr,mid+1,hi)
                 this.merge(arr,low,mid,hi)
             }
+            sortSz(arr){
+                for(let sz=1;sz<arr.length;sz=sz+sz){
+                    for(let lo=0;lo<arr.length-sz;lo+=sz+sz){
+                        this.merge(arr,lo,lo+sz-1,Math.min(lo+sz+sz-1,arr.length-1))
+                    }
+                }
+            }
         }
 
         const gen = makeArr()
@@ -683,6 +690,13 @@
                 merge.sort(mergeArr,0,mergeArr.length-1)
                 merge.show(mergeArr)
                 console.timeEnd('merge')
+                const mergeArrSz =  testArr.slice()
+                console.time('mergeArrSz')
+                const mergeSz = new Merge()
+                mergeSz.show(mergeArrSz)
+                mergeSz.sortSz(mergeArrSz)
+                mergeSz.show(mergeArrSz)
+                console.timeEnd('mergeArrSz')
             }
         }
         c()
