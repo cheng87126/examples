@@ -652,6 +652,26 @@
                 }
             }
         }
+        class Quick extends baseSort{
+            sort(arr,lo,hi){
+                if(lo>=hi) return
+                const j = this.partition(arr,lo,hi)
+                this.sort(arr,lo,j-1)
+                this.sort(arr,j+1,hi)
+            }
+            partition(arr,lo,hi){
+                let i=lo, j=hi+1
+                const v = arr[lo]
+                while(true){
+                    while(this.less(arr[++i],v)) if(i===hi) break
+                    while(this.less(v,arr[--j])) if(j===lo) break
+                    if(i>=j) break
+                    this.exch(arr,i,j)
+                }
+                this.exch(arr,lo,j)
+                return j
+            }
+        }
 
         const gen = makeArr()
         function c(){
@@ -697,6 +717,13 @@
                 mergeSz.sortSz(mergeArrSz)
                 mergeSz.show(mergeArrSz)
                 console.timeEnd('mergeArrSz')
+                const quickArr = testArr.slice()
+                console.time('quick')
+                const quick = new Quick()
+                quick.show(quickArr)
+                quick.sort(quickArr,0,quickArr.length-1)
+                quick.show(quickArr)
+                console.timeEnd('quick')
             }
         }
         c()
