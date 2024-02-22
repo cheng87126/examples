@@ -542,6 +542,51 @@
             for(let j=0;j<1000;j++) sum++
         }
         console.log('sum',sum)
+        const tree = [{
+            id:'0',
+            children:[{
+                id:'0-0',
+                children:[{
+                    id:'0-0-0',
+                    children:[]
+                }]
+            },{
+                id:'0-1',
+                children:[{
+                    id:'0-1-0',
+                    children:[]
+                },{
+                    id:'0-1-1',
+                    children:[]
+                }]
+            }]
+        },{
+            id:'1',
+            children:[{
+                id:'1-0',
+                children:[]
+            },{
+                id:'1-1',
+                children:[{
+                    id:'1-1-0',
+                    children:[]
+                }]
+            }]
+        }]
+        const treeMap = {}
+        function handleTree(data,parent){
+            for(let i=0;i<data.length;i++){
+                treeMap[data[i].id] = {
+                    ...data[i],
+                    parent
+                }
+                if(data[i].children.length){
+                    handleTree(data[i].children,{...data[i]})
+                }
+            }
+        }
+        handleTree(tree,null)
+        console.log('treeMap',treeMap)
     </script>
     <script type="module">
         class baseSort{
@@ -672,6 +717,39 @@
                 return j
             }
         }
+        class sortFactory{
+            static create(sortType){
+                switch(sortType){
+                    case 'selection':
+                        return new Selection()
+                        break
+                }
+            }
+        }
+        class sortDecorator{
+            constructor(_arr){
+                this.arr = _arr
+            }
+            setInst(_sortInstance){
+                this.sortInstance = _sortInstance
+            }
+            sort(logTxt){
+                const arr = this.arr.slice()
+                console.time(logTxt)
+                this.sortInstance.show(arr)
+                this.sortInstance.sort(arr)
+                this.sortInstance.show(arr)
+                console.timeEnd(logTxt)
+            }
+        }
+        
+        class maxPQ{
+            insert(v){}
+            max(){}
+            delMax(){}
+            isEmpty(){}
+            size(){}
+        }
 
         const gen = makeArr()
         function c(){
@@ -682,6 +760,11 @@
                 },300)
             }else{
                 const testArr = ret.value
+                
+                const sortDecoratorInst = new sortDecorator(testArr)
+                sortDecoratorInst.setInst(sortFactory.create('selection'))
+                sortDecoratorInst.sort('selection')
+
                 const selectionArr = testArr.slice()
                 console.time('selection')
                 const selection = new Selection()
