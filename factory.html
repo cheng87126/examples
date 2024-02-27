@@ -581,7 +581,7 @@
                     parent
                 }
                 if(data[i].children.length){
-                    handleTree(data[i].children,{...data[i]})
+                    handleTree(data[i].children,{...data[i],parent})
                 }
             }
         }
@@ -743,12 +743,59 @@
             }
         }
         
-        class maxPQ{
-            insert(v){}
-            max(){}
-            delMax(){}
-            isEmpty(){}
-            size(){}
+        class MaxPQ{
+            pq=[null]
+            N=0
+            constructor(){
+
+            }
+            parentIdx(k){
+                return ~~(k/2)
+            }
+            exch(a,b){
+                const tmp = this.pq[a]
+                this.pq[a] = this.pq[b]
+                this.pq[b] = tmp
+            }
+            swim(i){
+                while(i>1 && this.pq[this.parentIdx(i)]<this.pq[i]){
+                    this.exch(this.parentIdx(i),i)
+                    i = this.parentIdx(i)
+                }
+            }
+            sink(i){
+                while(2*i<=this.N){
+                    let j = 2*i
+                    if(2*i+1<this.N && this.pq[2*i]<this.pq[2*i+1]) j++
+                    if(this.pq[i]<this.pq[j]) {
+                        this.exch(i,j)
+                        i=j
+                    }else{
+                        break
+                    }
+                }
+            }
+            insert(v){
+                this.pq.push(v)
+                this.N++
+                this.swim(this.N)
+            }
+            max(){
+                return this.pq[1]
+            }
+            delMax(){
+                if(this.isEmpty()) return
+                this.exch(1,this.N)
+                this.pq.pop()
+                this.N--
+                this.sink(1)
+            }
+            isEmpty(){
+                return !this.N
+            }
+            size(){
+                return this.N
+            }
         }
 
         const gen = makeArr()
