@@ -797,6 +797,101 @@
                 return this.N
             }
         }
+        class Node{
+            key=null
+            value=null
+            left=null
+            right=null
+            N=0
+            constructor(key,value,N){
+                this.key = key
+                this.value = value
+                this.N = N
+            }
+        }
+        class BST{
+            root=null
+            size(x){
+                if(!x) return 0
+                return x.N
+            }
+            findNode(key,node){
+                if(!node) return
+                if(key>node.key) return this.findNode(key,node.right)
+                else if(key<node.key) return this.findNode(key,node.left)
+                else return node.value
+            }
+            get(key){
+                return this.findNode(key,this.root)
+            }
+            putNode(x,key,value){
+                if(!x) return new Node(key,value,1)
+                if(key>x.key) x.right = this.putNode(x.right,key,value)
+                else if(key<x.key) x.left = this.putNode(x.left,key,value)
+                else x.value = value
+                x.N = this.size(x.left) + this.size(x.right) + 1
+                return x
+            }
+            put(key,value){
+                this.root = this.putNode(this.root,key,value)
+            }
+            max(){
+                let node = this.root
+                let prev = null
+                while(node){
+                    prev = node
+                    node = node.right
+                }
+                return prev?.value
+            }
+            min(){
+                let node = this.root
+                let prev = null
+                while(node){
+                    prev = node
+                    node = node.left
+                }
+                return prev?.value
+            }
+            floor(){}
+            ceiling(){}
+            select(){}
+            rank(){}
+            delete(){}
+            deleteMin(){
+                let node = this.root
+                let prev = null
+                while(node){
+                    prev = node
+                    node = node.left
+                    if(node && !node.left){
+                        break
+                    }
+                }
+                console.log(prev)
+            }
+            deleteMax(){}
+            allKeys(node){
+                if(!node) return
+                this.allKeys(node.left)
+                console.log(node.key)
+                this.allKeys(node.right)
+            }
+            keys(){
+                this.allKeys(this.root)
+            }
+        }
+        console.log('BST')
+        const bst = new BST()
+        bst.put(6,'6')
+        bst.put(9,'9')
+        bst.put(3,'3')
+        bst.put(0,'0')
+        bst.put(12,'12')
+        bst.put(4,'4')
+        bst.put(8,'8')
+        bst.deleteMin()
+        console.log('BST',bst)
 
         const gen = makeArr()
         function c(){
