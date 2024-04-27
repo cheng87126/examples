@@ -1,7 +1,20 @@
 use std::io;
 use rand::Rng;
+use futures::executor::block_on;
 const THREE_HOURS_IN_SECONDS: u32 = 60 * 60 * 3;
+
+async fn say_hello()->String {
+    println!("hello");
+    say_world().await;
+    "hello".to_string()
+}
+async fn say_world() {
+    println!("world");
+}
+
 fn main() {
+    let op = say_hello();
+    block_on(op);
     let c = 32.0;
     let f = f_to_c(c);
     println!("c:{c},f:{f}");
