@@ -1,14 +1,11 @@
 use actix_identity::{Identity, IdentityMiddleware};
 use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
-    cookie::{time::Duration, Key},
-    error, get,
-    http::StatusCode,
-    middleware,
-    web::{self, ServiceConfig},
-    HttpMessage as _, HttpRequest, Responder,
+    cookie::{time::Duration, Key}, error, get, http::StatusCode, middleware, post, web::{self, Json, ServiceConfig}, Error, HttpMessage as _, HttpRequest, Responder
 };
 use shuttle_actix_web::ShuttleActixWeb;
+use sqlx::{FromRow, PgPool};
+use serde::{Deserialize, Serialize};
 
 const FIVE_MINUTES: Duration = Duration::minutes(5);
 
@@ -40,8 +37,36 @@ async fn logout(id: Identity) -> impl Responder {
     web::Redirect::to("/").using_status_code(StatusCode::FOUND)
 }
 
+#[post("")]
+async fn add(todo: web::Json<TodoNew>, state: web::Data<AppState>) -> Result<Json<Todo>,Error> {
+    let todo = sqlx::query_as("INSERT INTO todos(note) VALUES ($1) RETURNING id, note")
+        .bind(&todo.note)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
+
+    Ok(Json(todo))
+}
+
+#[derive(Clone)]
+struct AppState {
+    pool: PgPool,
+}
+
+#[derive(Deserialize)]
+struct TodoNew {
+    pub note: String,
+}
+#[derive(Serialize, Deserialize, FromRow)]
+struct Todo {
+    pub id: i32,
+    pub note: String,
+}
+
 #[shuttle_runtime::main]
-async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
+async fn main(
+    #[shuttle_shared_db::Postgres] pool: PgPool
+) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
     // Generate a random secret key. Note that it is important to use a unique
     // secret key for every project. Anyone with access to the key can generate
     // authentication cookies for any user!
@@ -59,12 +84,21 @@ async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clon
     // ```
     let secret_key = Key::generate();
 
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("Failed to run migrations");
+
+    let state = web::Data::new(AppState { pool });
+
     let config = move |cfg: &mut ServiceConfig| {
         cfg.service(
             web::scope("")
                 .service(index)
                 .service(login)
                 .service(logout)
+                .service(add)
+                .app_data(state)
                 .wrap(IdentityMiddleware::default())
                 .wrap(
                     SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
