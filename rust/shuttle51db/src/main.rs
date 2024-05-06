@@ -1,9 +1,17 @@
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 #[get("/")]
 async fn hello(data: web::Data<AppState>) -> impl Responder {
-    println!("{:?}",data.pool);
+    println!("{:?}", data.pool);
+    let ret = sqlx::query_as::<_, Todos>("SELECT * FROM todos")
+        .fetch_one(&data.pool)
+        .await;
+    if let Ok(row) = ret {
+        println!("{:?}", row);
+    } else {
+        println!("not found");
+    }
     HttpResponse::Ok().body("Hello world!")
 }
 
@@ -16,9 +24,14 @@ async fn manual_hello() -> impl Responder {
     HttpResponse::Ok().body("Hey there!")
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct AppState {
-    pool:Pool<Postgres>
+    pool: Pool<Postgres>,
+}
+#[derive(Debug, sqlx::FromRow)]
+struct Todos {
+    id: i32,
+    node: String,
 }
 
 #[actix_web::main]
@@ -36,9 +49,7 @@ async fn main() -> Result<(), std::io::Error> {
             .service(hello)
             .service(echo)
             .route("/hey", web::get().to(manual_hello))
-            .app_data(web::Data::new(AppState {
-                pool:pool.clone()
-            }))
+            .app_data(web::Data::new(AppState { pool: pool.clone() }))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
