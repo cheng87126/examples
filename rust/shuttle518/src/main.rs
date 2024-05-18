@@ -1,11 +1,19 @@
+use std::string;
+
 use actix_identity::{Identity, IdentityMiddleware};
 use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
-    cookie::{time::Duration, Key}, error, get, http::StatusCode, middleware, post, web::{self, Json, ServiceConfig}, Error, HttpMessage as _, HttpRequest, Responder
+    cookie::{time::Duration, Key},
+    error, get,
+    http::StatusCode,
+    middleware,
+    web::{self, ServiceConfig},
+    Error,
+    HttpMessage as _, HttpRequest, Responder,
 };
 use shuttle_actix_web::ShuttleActixWeb;
-use sqlx::{FromRow, PgPool};
 use serde::{Deserialize, Serialize};
+use sqlx::{FromRow, PgPool};
 
 const FIVE_MINUTES: Duration = Duration::minutes(5);
 
@@ -38,32 +46,31 @@ async fn logout(id: Identity) -> impl Responder {
 }
 #[get("/addUser")]
 async fn add_user(user_query: web::Query<UserNew>, state: web::Data<AppState>) -> Result<String,Error>{
-    sqlx::query("INSERT INTO users(pwd,user) VALUES ($1,$2)")
+    sqlx::query("INSERT INTO users(pwd,user_name) VALUES ($1,$2)")
         .bind(&user_query.pwd)
-        .bind(&user_query.user)
+        .bind(&user_query.user_name)
         .execute(&state.pool)
         .await
         .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
     Ok("success".to_owned())
 }
 #[get("/getUser")]
-async fn get_user(state: web::Data<AppState>) -> Result<Json<Vec<User>>,Error>{
+async fn get_user(state: web::Data<AppState>) -> Result<web::Json<Vec<Users>>,Error>{
     let users = sqlx::query_as("SELECT * FROM users")
         .fetch_all(&state.pool)
         .await
         .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
-    Ok(Json(users))
+    Ok(web::Json(users))
 }
 
-#[post("")]
-async fn add(todo: web::Json<TodoNew>, state: web::Data<AppState>) -> Result<Json<Todo>,Error> {
-    let todo = sqlx::query_as("INSERT INTO todos(note) VALUES ($1) RETURNING id, note")
-        .bind(&todo.note)
-        .fetch_one(&state.pool)
-        .await
-        .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
-
-    Ok(Json(todo))
+#[derive(Debug,Deserialize)]
+struct UserNew {
+    pub pwd: String,
+    pub user_name: String,
+}
+#[derive(Debug,Deserialize,Serialize,FromRow)]
+struct Users {
+    pub user_name: String
 }
 
 #[derive(Clone)]
@@ -71,30 +78,12 @@ struct AppState {
     pool: PgPool,
 }
 
-#[derive(Deserialize)]
-struct TodoNew {
-    pub note: String,
-}
-#[derive(Serialize, Deserialize, FromRow)]
-struct Todo {
-    pub id: i32,
-    pub note: String,
-}
-#[derive(Debug,Deserialize)]
-struct UserNew {
-    pub pwd: String,
-    pub user: String,
-}
-#[derive(Serialize, Deserialize, FromRow)]
-struct User {
-    pub id: i32,
-    pub user: String
-}
-
 #[shuttle_runtime::main]
-async fn main(
-    #[shuttle_shared_db::Postgres] pool: PgPool
-) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
+async fn main(#[shuttle_shared_db::Postgres] pool: PgPool) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("Failed to run migrations");
     // Generate a random secret key. Note that it is important to use a unique
     // secret key for every project. Anyone with access to the key can generate
     // authentication cookies for any user!
@@ -110,14 +99,8 @@ async fn main(
     // ```
     // let secret_key = Key::from(base64::decode(&private_key_base64).unwrap());
     // ```
-    let secret_key = Key::generate();
-
-    sqlx::migrate!()
-        .run(&pool)
-        .await
-        .expect("Failed to run migrations");
-
     let state = web::Data::new(AppState { pool });
+    let secret_key = Key::generate();
 
     let config = move |cfg: &mut ServiceConfig| {
         cfg.service(
@@ -125,7 +108,6 @@ async fn main(
                 .service(index)
                 .service(login)
                 .service(logout)
-                .service(add)
                 .service(add_user)
                 .service(get_user)
                 .app_data(state)

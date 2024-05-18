@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS users (
+  id serial PRIMARY KEY,
+  pwd TEXT NOT NULL,
+  user TEXT NOT NULL
+);
