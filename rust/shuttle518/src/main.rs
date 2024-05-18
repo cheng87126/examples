@@ -1,5 +1,3 @@
-use std::string;
-
 use actix_identity::{Identity, IdentityMiddleware};
 use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
@@ -70,6 +68,7 @@ struct UserNew {
 }
 #[derive(Debug,Deserialize,Serialize,FromRow)]
 struct Users {
+    pub id: i32,
     pub user_name: String
 }
 
