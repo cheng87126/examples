@@ -1,8 +1,9 @@
+use actix_files::NamedFile;
 use actix_identity::{Identity, IdentityMiddleware};
 use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
     cookie::{time::Duration, Key},
-    error, get,
+    error, get, post,
     http::StatusCode,
     middleware,
     web::{self, ServiceConfig},
@@ -13,8 +14,16 @@ use shuttle_actix_web::ShuttleActixWeb;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 
-const FIVE_MINUTES: Duration = Duration::minutes(5);
+const FIVE_MINUTES: Duration = Duration::minutes(50);
 
+#[get("/")]
+async fn index_page() -> impl Responder {
+    NamedFile::open_async("assets/index.html").await
+}
+#[get("/login")]
+async fn login_page() -> impl Responder {
+    NamedFile::open_async("assets/login.html").await
+}
 #[get("/")]
 async fn index(identity: Option<Identity>) -> actix_web::Result<impl Responder> {
     let id = match identity.map(|id| id.id()) {
@@ -26,14 +35,24 @@ async fn index(identity: Option<Identity>) -> actix_web::Result<impl Responder> 
     Ok(format!("Hello {id}"))
 }
 
-#[get("/login")]
-async fn login(req: HttpRequest) -> impl Responder {
+#[post("/login")]
+async fn login(req: HttpRequest,form: web::Form<LoginFormData>,state: web::Data<AppState>) -> actix_web::Result<impl Responder,Error> {
     // some kind of authentication should happen here
-
+    let user = sqlx::query_as::<_,LoginUser>("SELECT * FROM users WHERE user_name = $1")
+        .bind(&form.user_name)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
+    let res = if user.pwd == form.pwd {
+        "/".to_owned()
+    }else{
+        "/login".to_owned()
+    };
     // attach a verified user identity to the active session
-    Identity::login(&req.extensions(), "user1".to_owned()).unwrap();
-
-    web::Redirect::to("/").using_status_code(StatusCode::FOUND)
+    // into()
+    Identity::login(&req.extensions(), user.id.to_string().to_owned()).unwrap();
+    
+    Ok(web::Redirect::to(res).using_status_code(StatusCode::FOUND))
 }
 
 #[get("/logout")]
@@ -53,22 +72,62 @@ async fn add_user(user_query: web::Query<UserNew>, state: web::Data<AppState>) -
     Ok("success".to_owned())
 }
 #[get("/getUser")]
-async fn get_user(state: web::Data<AppState>) -> Result<web::Json<Vec<Users>>,Error>{
+async fn get_user(state: web::Data<AppState>) -> Result<web::Json<Vec<User>>,Error>{
     let users = sqlx::query_as("SELECT * FROM users")
         .fetch_all(&state.pool)
         .await
         .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
     Ok(web::Json(users))
 }
+#[post("/addUrl")]
+async fn add_url(state: web::Data<AppState>,identity: Option<Identity>,json:web::Json<Url>) -> impl Responder{
+    if let Some(user) = identity {
+        let id = user.id().unwrap();
+        sqlx::query("INSERT INTO urls(content,remark,user_id) VALUES ($1,$2,$3)")
+        .bind(&json.content)
+        .bind(&json.remark)
+        .bind(id.parse::<i32>().unwrap())
+        .execute(&state.pool)
+        .await
+        .unwrap();
+        format!("success {}", user.id().unwrap())
+    }else{
+        "fail".to_owned()
+    }
+}
+#[get("/getUrls")]
+async fn get_urls(state: web::Data<AppState>) -> Result<web::Json<Vec<Url>>,Error>{
+    let urls = sqlx::query_as("SELECT * FROM urls")
+        .fetch_all(&state.pool)
+        .await
+        .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
+    Ok(web::Json(urls))
+}
 
 #[derive(Debug,Deserialize)]
 struct UserNew {
     pub pwd: String,
-    pub user_name: String,
+    pub user_name: String
 }
-#[derive(Debug,Deserialize,Serialize,FromRow)]
-struct Users {
+#[derive(Debug,Serialize,FromRow)]
+struct User {
     pub id: i32,
+    pub user_name: String
+}
+#[derive(Debug,Serialize,FromRow,Deserialize)]
+struct Url{
+    pub content:String,
+    pub remark:String
+}
+#[derive(Debug,Deserialize)]
+struct LoginFormData{
+    pub pwd: String,
+    pub user_name: String
+}
+#[derive(Debug,Serialize,FromRow)]
+struct LoginUser {
+    pub id: i32,
+    pub pwd: String,
     pub user_name: String
 }
 
@@ -78,7 +137,7 @@ struct AppState {
 }
 
 #[shuttle_runtime::main]
-async fn main(#[shuttle_shared_db::Postgres] pool: PgPool) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
+async fn main(#[shuttle_shared_db::Postgres(local_uri = "postgres://user-shuttle518:{secrets.PASSWORD}@db.shuttle.rs:5432/db-shuttle518")] pool: PgPool) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
     sqlx::migrate!()
         .run(&pool)
         .await
@@ -103,12 +162,14 @@ async fn main(#[shuttle_shared_db::Postgres] pool: PgPool) -> ShuttleActixWeb<im
 
     let config = move |cfg: &mut ServiceConfig| {
         cfg.service(
-            web::scope("")
+            web::scope("/api")
                 .service(index)
                 .service(login)
                 .service(logout)
                 .service(add_user)
                 .service(get_user)
+                .service(add_url)
+                .service(get_urls)
                 .app_data(state)
                 .wrap(IdentityMiddleware::default())
                 .wrap(
@@ -120,6 +181,10 @@ async fn main(#[shuttle_shared_db::Postgres] pool: PgPool) -> ShuttleActixWeb<im
                 )
                 .wrap(middleware::NormalizePath::trim())
                 .wrap(middleware::Logger::default()),
+        ).service(
+            web::scope("")
+                .service(index_page)
+                .service(login_page)
         );
     };
 

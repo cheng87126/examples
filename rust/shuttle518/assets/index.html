@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <main>
+        <form>
+            <input id="content" name="content" type="text" placeholder="content" required>
+            <input id="remark" name="remark" type="text" placeholder="remark" required>
+            <button id="save" type="button">保存</button>
+        </form>
+        <ul>
+            
+        </ul>
+    </main>
+    <script>
+        ;(function(){
+            document.querySelector('#save').addEventListener('click',function(){
+                const content = document.querySelector("#content").value
+                const remark = document.querySelector("#remark").value
+                addUrl({
+                    content,
+                    remark
+                })
+            },false)
+            getUrls()
+            async function getUrls(){
+                const res = await fetch('/api/getUrls')
+                const data = await res.json()
+                let html = ''
+                data.forEach(item=>{
+                    html += `<li>${item.content} <span>${item.remark}</span></li>`
+                })
+                document.querySelector('ul').insertAdjacentHTML('beforeend',html)
+            }
+            async function addUrl(data){
+                await fetch('api/addUrl',{
+                    method: 'POST',
+                    headers: {
+                      "Content-Type": "application/json",
+                      // 'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: JSON.stringify(data)
+                })
+                getUrls()
+            }
+        })()
+    </script>
+</body>
+</html>
