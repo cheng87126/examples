@@ -80,7 +80,7 @@ async fn get_user(state: web::Data<AppState>) -> Result<web::Json<Vec<User>>,Err
     Ok(web::Json(users))
 }
 #[post("/addUrl")]
-async fn add_url(state: web::Data<AppState>,identity: Option<Identity>,json:web::Json<Url>) -> impl Responder{
+async fn add_url(state: web::Data<AppState>,identity: Option<Identity>,json:web::Json<AddUrl>) -> impl Responder{
     if let Some(user) = identity {
         let id = user.id().unwrap();
         sqlx::query("INSERT INTO urls(content,remark,user_id) VALUES ($1,$2,$3)")
@@ -114,8 +114,14 @@ struct User {
     pub id: i32,
     pub user_name: String
 }
-#[derive(Debug,Serialize,FromRow,Deserialize)]
+#[derive(Debug,Serialize,FromRow)]
 struct Url{
+    pub id: i32,
+    pub content:String,
+    pub remark:String
+}
+#[derive(Debug,Deserialize)]
+struct AddUrl{
     pub content:String,
     pub remark:String
 }

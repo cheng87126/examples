@@ -31,6 +31,7 @@
                 const res = await fetch('/api/getUrls')
                 const data = await res.json()
                 let html = ''
+                document.querySelector('ul').innerHTML = ''
                 data.forEach(item=>{
                     html += `<li>${item.content} <span>${item.remark}</span></li>`
                 })
