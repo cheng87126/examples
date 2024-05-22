@@ -13,6 +13,8 @@ use actix_web::{
 use shuttle_actix_web::ShuttleActixWeb;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
+use chrono::naive::NaiveDate;
+use rust_decimal::Decimal;
 
 const FIVE_MINUTES: Duration = Duration::minutes(50);
 
@@ -96,12 +98,68 @@ async fn add_url(state: web::Data<AppState>,identity: Option<Identity>,json:web:
     }
 }
 #[get("/getUrls")]
-async fn get_urls(state: web::Data<AppState>) -> Result<web::Json<Vec<Url>>,Error>{
-    let urls = sqlx::query_as("SELECT * FROM urls")
-        .fetch_all(&state.pool)
-        .await
-        .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
-    Ok(web::Json(urls))
+async fn get_urls(state: web::Data<AppState>,identity: Option<Identity>) -> Result<web::Json<Vec<Url>>,Error>{
+    if let Some(user) = identity{
+        let id = user.id().unwrap();
+        let urls = sqlx::query_as("SELECT * FROM urls WHERE user_id = $1")
+            .bind(id.parse::<i32>().unwrap())
+            .fetch_all(&state.pool)
+            .await
+            .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
+        Ok(web::Json(urls))
+    }else {
+        let v: Vec<Url> = Vec::new();
+        Ok(web::Json(v))
+    }
+}
+#[post("/addFund")]
+async fn add_fund(state: web::Data<AppState>,identity: Option<Identity>,json:web::Json<AddFund>) -> impl Responder{
+    if let Some(user) = identity {
+        let id = user.id().unwrap();
+        sqlx::query("INSERT INTO funds(code,buy_date,price,amount,tranche,user_id) VALUES ($1,$2,$3,$4,$5,$6)")
+            .bind(&json.code)
+            .bind(&json.buy_date)
+            .bind(&json.price)
+            .bind(&json.amount)
+            .bind(&json.tranche)
+            .bind(id.parse::<i32>().unwrap())
+            .execute(&state.pool)
+            .await
+            .unwrap();
+        format!("success {}", user.id().unwrap())
+    }else{
+        "fail".to_owned()
+    }
+} 
+#[get("/getFunds")]
+async fn get_funds(state: web::Data<AppState>,identity: Option<Identity>) -> Result<web::Json<Vec<Fund>>,Error>{
+    if let Some(user) = identity{
+        let id = user.id().unwrap();
+        let funds = sqlx::query_as("SELECT * FROM funds WHERE user_id = $1")
+            .bind(id.parse::<i32>().unwrap())
+            .fetch_all(&state.pool)
+            .await
+            .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
+        Ok(web::Json(funds))
+    }else {
+        let v:Vec<Fund> = Vec::new();
+        Ok(web::Json(v))
+    }
+}
+#[derive(Deserialize)]
+struct AddFund{
+    pub code: String,
+    pub buy_date: NaiveDate,
+    pub price: Decimal,
+    pub amount: Decimal,
+    pub tranche: Decimal
+}
+#[derive(Debug,Serialize,FromRow)]
+struct Fund{
+    pub buy_date: NaiveDate,
+    pub price: Decimal,
+    pub amount: Decimal,
+    pub tranche: Decimal
 }
 
 #[derive(Debug,Deserialize)]
@@ -176,6 +234,8 @@ async fn main(#[shuttle_shared_db::Postgres(local_uri = "postgres://user-shuttle
                 .service(get_user)
                 .service(add_url)
                 .service(get_urls)
+                .service(add_fund)
+                .service(get_funds)
                 .app_data(state)
                 .wrap(IdentityMiddleware::default())
                 .wrap(
