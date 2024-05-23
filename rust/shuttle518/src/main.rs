@@ -15,6 +15,8 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 use chrono::naive::NaiveDate;
 use rust_decimal::Decimal;
+use rust_decimal::prelude::*;
+use rust_decimal_macros::dec;
 
 const FIVE_MINUTES: Duration = Duration::minutes(50);
 
@@ -132,19 +134,94 @@ async fn add_fund(state: web::Data<AppState>,identity: Option<Identity>,json:web
     }
 } 
 #[get("/getFunds")]
-async fn get_funds(state: web::Data<AppState>,identity: Option<Identity>) -> Result<web::Json<Vec<Fund>>,Error>{
+async fn get_funds(state: web::Data<AppState>,identity: Option<Identity>) -> Result<web::Json<Vec<ResFund>>,Error>{
     if let Some(user) = identity{
         let id = user.id().unwrap();
-        let funds = sqlx::query_as("SELECT * FROM funds WHERE user_id = $1")
+        let rows = sqlx::query_as::<_,Fund>("SELECT * FROM funds WHERE user_id = $1")
             .bind(id.parse::<i32>().unwrap())
             .fetch_all(&state.pool)
             .await
             .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
+        let mut funds:Vec<ResFund> = Vec::new();
+        for r in rows{
+            let name_url = format!("https://fund.xueqiu.com/dj/open/fund/deriveds?codes={}",r.code);
+            let name_res = reqwest::get(name_url).await.unwrap().json::<NameRes>().await.unwrap();
+            if name_res.data.len()==0 {
+                continue;
+            }
+            let url = format!("https://danjuanfunds.com/djapi/fund/nav/history/{}?page=1&size=1", r.code);
+            let resp = reqwest::get(url)
+                .await.unwrap()
+                .json::<Res<ResData>>()
+                .await.unwrap();
+            if resp.data.items.len()==0 {
+                continue;
+            }
+            let start_time = r.buy_date;
+            let end_time: NaiveDate = NaiveDate::parse_from_str(&resp.data.items[0].date, "%Y-%m-%d").unwrap();
+            let diff_day = (end_time - start_time).num_days();
+            let new_val = Decimal::from_str(&resp.data.items[0].value).unwrap();
+            let old_val = r.price;
+            let n = r.tranche;
+            let total = (new_val - old_val) * n;
+            let unit = (new_val - old_val) / Decimal::from_i64(diff_day).unwrap() * dec!(10000);
+            let year = unit*dec!(365)/dec!(100);
+            funds.push(ResFund {
+                id:r.id,
+                code:r.code,
+                name:name_res.data[0].fd_name.to_owned(),
+                buy_date:r.buy_date,
+                amount:r.amount,
+                total,
+                unit,
+                year
+            });
+        }
         Ok(web::Json(funds))
     }else {
-        let v:Vec<Fund> = Vec::new();
+        let v:Vec<ResFund> = Vec::new();
         Ok(web::Json(v))
     }
+}
+#[post("/updateFund")]
+async fn update_fund(state: web::Data<AppState>,identity: Option<Identity>,json:web::Json<UpdateFund>)->Result<impl Responder,Error>{
+    if let Some(user) = identity{
+        let _id = user.id().unwrap();
+        sqlx::query("UPDATE funds SET code = $1, buy_date = $2, price = $3, amount = $4, tranche = $5 WHERE id = $6")
+            .bind(&json.code)
+            .bind(&json.buy_date)
+            .bind(&json.price)
+            .bind(&json.amount)
+            .bind(&json.tranche)
+            .bind(&json.id)
+            .execute(&state.pool)
+            .await
+            .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
+        Ok("success".to_owned())
+    }else {
+        Ok("fail".to_owned())
+    }
+}
+
+#[derive(Debug,Deserialize)]
+struct ResDataItem{
+    date : String, 
+    // nav : String,
+    // percentage : String,
+    value : String
+}
+#[derive(Debug,Deserialize)]
+struct ResData {
+    // current_page : i32,
+    items : Vec<ResDataItem>,
+    // size : i32,
+    // total_items : i32,
+    // total_pages : i32
+}
+#[derive(Debug,Deserialize)]
+struct Res<T> {
+    data: T,
+    // result_code: i32
 }
 #[derive(Deserialize)]
 struct AddFund{
@@ -154,12 +231,42 @@ struct AddFund{
     pub amount: Decimal,
     pub tranche: Decimal
 }
-#[derive(Debug,Serialize,FromRow)]
-struct Fund{
+#[derive(Deserialize)]
+struct UpdateFund{
+    pub id: i32,
+    pub code: String,
     pub buy_date: NaiveDate,
     pub price: Decimal,
     pub amount: Decimal,
     pub tranche: Decimal
+}
+#[derive(Debug,FromRow)]
+struct Fund{
+    pub id:i32,
+    pub code: String,
+    pub buy_date: NaiveDate,
+    pub price: Decimal,
+    pub amount: Decimal,
+    pub tranche: Decimal
+}
+#[derive(Serialize)]
+struct ResFund{
+    pub id: i32,
+    pub code: String,
+    pub name: String,
+    pub buy_date: NaiveDate,
+    pub amount: Decimal,
+    pub total: Decimal,
+    pub unit: Decimal,
+    pub year: Decimal
+}
+#[derive(Deserialize)]
+struct FdName{
+    fd_name:String
+}
+#[derive(Deserialize)]
+struct NameRes{
+    data:Vec<FdName>
 }
 
 #[derive(Debug,Deserialize)]
@@ -236,6 +343,7 @@ async fn main(#[shuttle_shared_db::Postgres(local_uri = "postgres://user-shuttle
                 .service(get_urls)
                 .service(add_fund)
                 .service(get_funds)
+                .service(update_fund)
                 .app_data(state)
                 .wrap(IdentityMiddleware::default())
                 .wrap(

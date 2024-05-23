@@ -15,6 +15,8 @@
                 <input id="amount" name="amount" type="number" placeholder="amount" required>
                 <input id="tranche" name="tranche" type="number" placeholder="tranche" required>
                 <button id="save-fund" type="button">保存</button>
+                <input id="id" name="id" type="text" placeholder="id" required>
+                <button id="update-fund" type="button">更新</button>
             </form>
             <table>
                 <thead>
@@ -28,14 +30,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
+                    
                 </tbody>
             </table>
         </section>
@@ -51,11 +46,21 @@
     <script>
         ;(function(){
             document.querySelector("#save-fund").addEventListener('click',function(){
-                addFund({
+                addOrUpdateFund({
                     code:window.code.value,
                     buy_date:window.buy_date.value,
                     price:+window.price.value,
-                    amount:+window.amount.value*100,
+                    amount:+window.amount.value,
+                    tranche:+window.tranche.value
+                })
+            },false)
+            document.querySelector('#update-fund').addEventListener('click',function(){
+                addOrUpdateFund({
+                    id:+window.id.value,
+                    code:window.code.value,
+                    buy_date:window.buy_date.value,
+                    price:+window.price.value,
+                    amount:+window.amount.value,
                     tranche:+window.tranche.value
                 })
             },false)
@@ -94,10 +99,23 @@
                 const res = await fetch('/api/getFunds')
                 const data = await res.json()
                 let html = ''
-
+                document.querySelector('tbody').insertAdjacentHTML('beforeend',html)
+                data.forEach(item=>{
+                    html += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.amount}</td>
+                            <td>${item.buy_date}</td>
+                            <td>${item.total}</td>
+                            <td>${item.unit}</td>
+                            <td>${item.year}</td>
+                        </tr>
+                    `
+                })
+                document.querySelector('tbody').insertAdjacentHTML('beforeend',html)
             }
-            async function addFund(data){
-                await fetch('api/addFund',{
+            async function addOrUpdateFund(data){
+                await fetch(data.id?'api/updateFund':'api/addFund',{
                     method: 'POST',
                     headers: {
                       "Content-Type": "application/json"
