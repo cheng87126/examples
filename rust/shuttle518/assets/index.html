@@ -99,16 +99,17 @@
                 const res = await fetch('/api/getFunds')
                 const data = await res.json()
                 let html = ''
-                document.querySelector('tbody').insertAdjacentHTML('beforeend',html)
+                document.querySelector('tbody').innerHTML = ''
+                const formatter = new Intl.NumberFormat()
                 data.forEach(item=>{
                     html += `
                         <tr>
                             <td>${item.name}</td>
                             <td>${item.amount}</td>
                             <td>${item.buy_date}</td>
-                            <td>${item.total}</td>
-                            <td>${item.unit}</td>
-                            <td>${item.year}</td>
+                            <td>${formatter.format(item.total)}</td>
+                            <td>${formatter.format(item.unit)}</td>
+                            <td>${formatter.format(item.year)}</td>
                         </tr>
                     `
                 })

@@ -161,10 +161,10 @@ async fn get_funds(state: web::Data<AppState>,identity: Option<Identity>) -> Res
             let end_time: NaiveDate = NaiveDate::parse_from_str(&resp.data.items[0].date, "%Y-%m-%d").unwrap();
             let diff_day = (end_time - start_time).num_days();
             let new_val = Decimal::from_str(&resp.data.items[0].value).unwrap();
-            let old_val = r.price;
+            let _old_val = r.price;
             let n = r.tranche;
-            let total = (new_val - old_val) * n;
-            let unit = (new_val - old_val) / Decimal::from_i64(diff_day).unwrap() * dec!(10000);
+            let total = new_val * n - r.amount;
+            let unit = dec!(10000) / r.amount * total / Decimal::from_i64(diff_day).unwrap(); //(new_val - old_val) / Decimal::from_i64(diff_day).unwrap() * dec!(10000);
             let year = unit*dec!(365)/dec!(100);
             funds.push(ResFund {
                 id:r.id,
