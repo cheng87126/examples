@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script async src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
     <main>
         <section>
             <form id="fund">
                 <input id="code" name="code" type="text" placeholder="code" required>
+                <input id="fund_name" name="fund_name" type="text" placeholder="fund_name" required>
                 <input id="buy_date" name="buy_date" type="date" placeholder="buy_date" required>
                 <input id="price" name="price" type="number" placeholder="price" required>
                 <input id="amount" name="amount" type="number" placeholder="amount" required>
@@ -27,10 +29,11 @@
                         <th>总收益</th>
                         <th>万份收益</th>
                         <th>年化收益</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
-                    
+
                 </tbody>
             </table>
         </section>
@@ -45,33 +48,68 @@
     </main>
     <script>
         ;(function(){
-            document.querySelector("#save-fund").addEventListener('click',function(){
+            async function req(url,method,data){
+                let opt
+                switch (method) {
+                    case 'GET':
+                        const params = new URLSearchParams(data)
+                        url += `?${params.toString()}`
+                        break
+                    case 'POST':
+                        opt = {
+                            method,
+                            headers: {
+                              "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(data)
+                        }
+                        break
+                }
+                const res = await fetch(url,opt)
+                return await res.json()
+            }
+            function on(selector,type,fn){
+                document.querySelector(selector).addEventListener(type,fn,false)
+            }
+            on('#code','blur',async function(){
+                const res = await req('/api/getFundName','GET',{code:window.code.value})
+                window.fund_name.value = res.fd_name
+            })
+            on("#save-fund",'click',function(){
                 addOrUpdateFund({
+                    fund_name:window.fund_name.value,
                     code:window.code.value,
                     buy_date:window.buy_date.value,
                     price:+window.price.value,
                     amount:+window.amount.value,
                     tranche:+window.tranche.value
                 })
-            },false)
-            document.querySelector('#update-fund').addEventListener('click',function(){
+            })
+            on('#update-fund','click',function(){
                 addOrUpdateFund({
                     id:+window.id.value,
+                    fund_name:window.fund_name.value,
                     code:window.code.value,
                     buy_date:window.buy_date.value,
                     price:+window.price.value,
                     amount:+window.amount.value,
                     tranche:+window.tranche.value
                 })
-            },false)
-            document.querySelector('#save').addEventListener('click',function(){
+            })
+            on('#save','click',function(){
                 const content = document.querySelector("#content").value
                 const remark = document.querySelector("#remark").value
                 addUrl({
                     content,
                     remark
                 })
-            },false)
+            })
+            on('tbody','click',async function(e){
+                if(e.target.id==='edit'){
+                    const res = await req('/api/getFund','GET',{id:e.target.dataset.id})
+                    console.log('res',res)
+                }
+            })
             getUrls()
             getFunds()
             async function getUrls(){
@@ -85,14 +123,7 @@
                 document.querySelector('ul').insertAdjacentHTML('beforeend',html)
             }
             async function addUrl(data){
-                await fetch('api/addUrl',{
-                    method: 'POST',
-                    headers: {
-                      "Content-Type": "application/json",
-                      // 'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: JSON.stringify(data)
-                })
+                await req('api/addUrl',POST,data)
                 getUrls()
             }
             async function getFunds(){
@@ -110,19 +141,14 @@
                             <td>${formatter.format(item.total)}</td>
                             <td>${formatter.format(item.unit)}</td>
                             <td>${formatter.format(item.year)}</td>
+                            <td><span id="edit" data-id=${item.id}>编辑</span></td>
                         </tr>
                     `
                 })
                 document.querySelector('tbody').insertAdjacentHTML('beforeend',html)
             }
             async function addOrUpdateFund(data){
-                await fetch(data.id?'api/updateFund':'api/addFund',{
-                    method: 'POST',
-                    headers: {
-                      "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(data)
-                })
+                await req(data.id?'api/updateFund':'api/addFund','POST',data)
                 getFunds()
             }
         })()

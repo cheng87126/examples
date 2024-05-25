@@ -7,6 +7,7 @@ use actix_web::{
     http::StatusCode,
     middleware,
     web::{self, ServiceConfig},
+    Either,
     Error,
     HttpMessage as _, HttpRequest, Responder,
 };
@@ -118,13 +119,14 @@ async fn get_urls(state: web::Data<AppState>,identity: Option<Identity>) -> Resu
 async fn add_fund(state: web::Data<AppState>,identity: Option<Identity>,json:web::Json<AddFund>) -> impl Responder{
     if let Some(user) = identity {
         let id = user.id().unwrap();
-        sqlx::query("INSERT INTO funds(code,buy_date,price,amount,tranche,user_id) VALUES ($1,$2,$3,$4,$5,$6)")
+        sqlx::query("INSERT INTO funds(code,buy_date,price,amount,tranche,user_id,fund_name) VALUES ($1,$2,$3,$4,$5,$6,$7)")
             .bind(&json.code)
             .bind(&json.buy_date)
             .bind(&json.price)
             .bind(&json.amount)
             .bind(&json.tranche)
             .bind(id.parse::<i32>().unwrap())
+            .bind(&json.fund_name)
             .execute(&state.pool)
             .await
             .unwrap();
@@ -144,11 +146,6 @@ async fn get_funds(state: web::Data<AppState>,identity: Option<Identity>) -> Res
             .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
         let mut funds:Vec<ResFund> = Vec::new();
         for r in rows{
-            let name_url = format!("https://fund.xueqiu.com/dj/open/fund/deriveds?codes={}",r.code);
-            let name_res = reqwest::get(name_url).await.unwrap().json::<NameRes>().await.unwrap();
-            if name_res.data.len()==0 {
-                continue;
-            }
             let url = format!("https://danjuanfunds.com/djapi/fund/nav/history/{}?page=1&size=1", r.code);
             let resp = reqwest::get(url)
                 .await.unwrap()
@@ -169,7 +166,7 @@ async fn get_funds(state: web::Data<AppState>,identity: Option<Identity>) -> Res
             funds.push(ResFund {
                 id:r.id,
                 code:r.code,
-                name:name_res.data[0].fd_name.to_owned(),
+                name:r.fund_name,
                 buy_date:r.buy_date,
                 amount:r.amount,
                 total,
@@ -186,14 +183,16 @@ async fn get_funds(state: web::Data<AppState>,identity: Option<Identity>) -> Res
 #[post("/updateFund")]
 async fn update_fund(state: web::Data<AppState>,identity: Option<Identity>,json:web::Json<UpdateFund>)->Result<impl Responder,Error>{
     if let Some(user) = identity{
-        let _id = user.id().unwrap();
-        sqlx::query("UPDATE funds SET code = $1, buy_date = $2, price = $3, amount = $4, tranche = $5 WHERE id = $6")
+        let id = user.id().unwrap();
+        sqlx::query("UPDATE funds SET code = $1, buy_date = $2, price = $3, amount = $4, tranche = $5, fund_name = $7 WHERE id = $6 AND user_id = $8")
             .bind(&json.code)
             .bind(&json.buy_date)
             .bind(&json.price)
             .bind(&json.amount)
             .bind(&json.tranche)
             .bind(&json.id)
+            .bind(&json.fund_name)
+            .bind(id.parse::<i32>().unwrap())
             .execute(&state.pool)
             .await
             .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
@@ -203,6 +202,38 @@ async fn update_fund(state: web::Data<AppState>,identity: Option<Identity>,json:
     }
 }
 
+type FundResult = Either<web::Json<FundDetail>, &'static str>;
+#[get("/getFund")]
+async fn get_fund(state: web::Data<AppState>,identity: Option<Identity>,query: web::Query<FundQuery>)->Result<FundResult,Error>{
+    if let Some(user) = identity {
+        let row = sqlx::query_as("SELECT * FROM funds WHERE id = $1 AND user_id = $2")
+            .bind(query.id)
+            .bind(user.id().unwrap().parse::<i32>().unwrap())
+            .fetch_one(&state.pool)
+            .await
+            .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
+        Ok(Either::Left(web::Json(row)))
+    }else{
+        Ok(Either::Right("fail"))
+    }
+}
+#[get("/getFundName")]
+async fn get_fund_name(query: web::Query<GetFundName>)->Either<String,web::Json<FdName>>{
+    let name_url = format!("https://fund.xueqiu.com/dj/open/fund/deriveds?codes={}",query.code);
+    let name_res = reqwest::get(name_url).await.unwrap().json::<NameRes>().await.unwrap();
+    if name_res.data.len()==0 {
+        return Either::Left("not found".to_owned());
+    }
+    Either::Right(web::Json(FdName {fd_name:name_res.data[0].fd_name.to_owned()}))
+}
+#[derive(Deserialize)]
+struct  GetFundName{
+    code:String
+}
+#[derive(Deserialize)]
+struct FundQuery{
+    id:i32
+}
 #[derive(Debug,Deserialize)]
 struct ResDataItem{
     date : String, 
@@ -225,6 +256,7 @@ struct Res<T> {
 }
 #[derive(Deserialize)]
 struct AddFund{
+    pub fund_name: String,
     pub code: String,
     pub buy_date: NaiveDate,
     pub price: Decimal,
@@ -234,6 +266,7 @@ struct AddFund{
 #[derive(Deserialize)]
 struct UpdateFund{
     pub id: i32,
+    pub fund_name: String,
     pub code: String,
     pub buy_date: NaiveDate,
     pub price: Decimal,
@@ -243,6 +276,17 @@ struct UpdateFund{
 #[derive(Debug,FromRow)]
 struct Fund{
     pub id:i32,
+    pub fund_name: String,
+    pub code: String,
+    pub buy_date: NaiveDate,
+    pub price: Decimal,
+    pub amount: Decimal,
+    pub tranche: Decimal
+}
+#[derive(Debug,FromRow,Serialize)]
+struct FundDetail{
+    pub id:i32,
+    pub fund_name: String,
     pub code: String,
     pub buy_date: NaiveDate,
     pub price: Decimal,
@@ -260,7 +304,7 @@ struct ResFund{
     pub unit: Decimal,
     pub year: Decimal
 }
-#[derive(Deserialize)]
+#[derive(Deserialize,Serialize)]
 struct FdName{
     fd_name:String
 }
@@ -344,6 +388,8 @@ async fn main(#[shuttle_shared_db::Postgres(local_uri = "postgres://user-shuttle
                 .service(add_fund)
                 .service(get_funds)
                 .service(update_fund)
+                .service(get_fund)
+                .service(get_fund_name)
                 .app_data(state)
                 .wrap(IdentityMiddleware::default())
                 .wrap(
