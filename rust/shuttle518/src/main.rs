@@ -1,4 +1,4 @@
-use actix_files::NamedFile;
+use actix_files::{NamedFile, Files};
 use actix_identity::{Identity, IdentityMiddleware};
 use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
@@ -401,7 +401,9 @@ async fn main(#[shuttle_shared_db::Postgres(local_uri = "postgres://user-shuttle
                 )
                 .wrap(middleware::NormalizePath::trim())
                 .wrap(middleware::Logger::default()),
-        ).service(
+        )
+        .service(Files::new("/static", "./assets/static/"))
+        .service(
             web::scope("")
                 .service(index_page)
                 .service(login_page)
