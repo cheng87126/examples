@@ -19,6 +19,7 @@ mod funds;
 mod login;
 mod url;
 mod user;
+mod image;
 
 #[get("/")]
 async fn index_page() -> impl Responder {
@@ -83,6 +84,7 @@ async fn main(
                 .service(funds::update_fund)
                 .service(funds::get_fund)
                 .service(funds::get_fund_name)
+                .service(image::process_image)
                 .app_data(state)
                 .wrap(IdentityMiddleware::default())
                 .wrap(
