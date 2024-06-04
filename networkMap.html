@@ -8,6 +8,16 @@
     body{
       margin: 0;
     }
+    .tooltip{
+      position: absolute;
+      transform: translateY(-100%);
+      border: 1px solid #000;
+      border-radius: 2px;
+      padding: 2px;
+      background: #fff;
+      box-shadow: 0 2px 6px #000;
+      display: none;
+    }
   </style>
   <script type="importmap">
     {
@@ -19,63 +29,163 @@
   </script>
 </head>
 <body>
+    <div class="tooltip"></div>
     <script type="module">
+      const legend = [0x0000dd,0xdfaa2b,0xdea71e,0x2dbc42]
+      const vertexs = [
+        {label:'D',value:0,legend:0,x:0,y:0},
+        {label:'K',value:0,legend:0,x:-10,y:5},
+        {label:'N',value:1,legend:1,x:-9,y:-4},
+        {label:'C',value:1,legend:2,x:-1,y:-4},
+        {label:'M',value:1,legend:3,x:-6,y:1}
+      ]
+      const edges = [
+        {label:'K',value:0,legend:0,start:{x:5,y:2},end:{x:0,y:0}},
+        {label:'K',value:0,legend:0,start:{x:0,y:0},end:{x:-10,y:5}},
+        {label:'K',value:0,legend:1,start:{x:-10,y:5},end:{x:-9,y:-4}},
+        {label:'K',value:0,legend:2,start:{x:-9,y:-4},end:{x:-1,y:-4}},
+        {label:'K',value:0,legend:3,start:{x:-1,y:-4},end:{x:-6,y:1}}
+      ]
       import * as THREE from 'three'
+      import { FontLoader } from 'three/addons/loaders/FontLoader.js'
+      import { TextGeometry } from 'three/addons/geometries/TextGeometry.js'
       import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+      // import { TransformControls } from 'three/addons/controls/TransformControls.js'
+      // import { DragControls } from 'three/addons/controls/DragControls.js'
       const scene = new THREE.Scene()
+
+      const raycaster = new THREE.Raycaster()
+      const mouse = new THREE.Vector2()
+      
       // const camera = new THREE.OrthographicCamera(-5, 5, 3.75, -3.75, 0.1, 100)
-      const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100 )
+      const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 )
 
       // const axesHelper = new THREE.AxesHelper(100)
       // scene.add(axesHelper)
 
-      const renderer = new THREE.WebGLRenderer()
+      const renderer = new THREE.WebGLRenderer({ antialias: true } )
+      renderer.setClearColor(0xfbfbfb, 1)
       renderer.setSize( window.innerWidth, window.innerHeight )
       document.body.appendChild( renderer.domElement )
+      window.addEventListener('click', function(e){
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+        raycaster.setFromCamera(mouse, camera)
+        const intersects = raycaster.intersectObjects(scene.children)
+        console.log(intersects)
+        const tooltip = document.querySelector('.tooltip')
+        tooltip.style.cssText = `display: none;`
+        if(!intersects.length) return
+        // for (var i = 0; i < intersects.length; i++) {
+        //     intersects[i].object.material.color.set(0xff0000)
+        // }
+        // intersects[0].object.material.color.set(0xff0000)
+        const worldVector = new THREE.Vector3(
+            intersects[0].object.position.x,
+            intersects[0].object.position.y + 0.5,
+            intersects[0].object.position.z
+        )
+        // const standardVector = intersects[0].object.position.project(camera)
+        const standardVector = worldVector.project(camera)
+        const a = window.innerWidth / 2
+        const b = window.innerHeight / 2
+        const x = Math.round(standardVector.x * a + a)
+        const y = Math.round(-standardVector.y * b + b)
+        
+        tooltip.innerHTML = ''
+        const cont = intersects[0].object.userData?.label || 'content'
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = `<h1>${cont}</h1><p>This is ${cont} content</p>`
+        tooltip.insertAdjacentElement('afterbegin',tempDiv)
+        tooltip.style.cssText = `left:${x}px;top:${y}px;display: block;`
+        console.log(intersects[0].object.userData,x,y)
+      },false)
       
-
-      const geometry = new THREE.BoxGeometry( 1, 1, 1 )
-      const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } )
-      const cube = new THREE.Mesh( geometry, material )
-      // cube.position.set(0,0,10)
-      scene.add( cube )
-
       scene.add(sphereGeometry())
-      scene.add(catmullRomCurve3())
+      vertexs.forEach(item=>{
+        scene.add(boxGeometry(item))
+      })
+      edges.forEach(item=>{
+        scene.add(catmullRomCurve3(item))
+      })
+      renderText()
+      /*
+      const transformControl = new TransformControls( camera,renderer.domElement )
+      scene.add( transformControl )
+      const dragcontrols = new DragControls(scene.children,camera,renderer.domElement )
+      dragcontrols.addEventListener( 'hoveron', function ( event ) {
+        transformControl.attach( event.object )
+      })
+      */
 
       const controls = new OrbitControls(camera,renderer.domElement)
+      controls.zoomSpeed = 2
       controls.addEventListener('change', (e)=>{
         // cube.rotation.x += 0.01
       	// cube.rotation.y += 0.01
-
 	      renderer.render( scene, camera )
       })
 
-      camera.position.z = 5
+      camera.position.z = 20
       controls.update()
       renderer.render( scene, camera )
 
+      function boxGeometry(data){
+        const geometry = new THREE.BoxGeometry( 1, 1, 1 )
+        const material = new THREE.MeshBasicMaterial( { color: legend[data.legend] } )
+        const cube = new THREE.Mesh( geometry, material )
+        cube.position.set(data.x,data.y,0)
+        cube.userData = data
+        return cube
+      }
       function sphereGeometry(){
         const geometry = new THREE.SphereGeometry( 0.5, 32, 16 )
 		    const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } )
 		    const sphere = new THREE.Mesh( geometry, material )
-		    // scene.add( sphere )
         sphere.position.set(5,2,0)
         return sphere
       }
-      function catmullRomCurve3(){
+      function catmullRomCurve3(data){
         const curve = new THREE.CatmullRomCurve3( [
-        	new THREE.Vector3( 0, 0, 0 ),
-          new THREE.Vector3( 3, 1, 0 ),
-        	new THREE.Vector3( 5, 2, 0 )
+        	new THREE.Vector3( data.start.x, data.start.y, 0 ),
+        	new THREE.Vector3( data.end.x, data.end.y, 0 )
         ] )
         const points = curve.getPoints( 50 )
         const geometry = new THREE.BufferGeometry().setFromPoints( points )
 
-        const material = new THREE.LineDashedMaterial( { color: 0xffffff } )
+        const material = new THREE.LineDashedMaterial( { color: legend[data.legend] } )
 
         const curveObject = new THREE.Line( geometry, material )
         return curveObject
+      }
+      function textGeometry(font, data){
+        const geometry = new TextGeometry(data.label, {
+          font: font,
+		      size: 0.5,
+          height: 0.1,
+          curveSegments: 12,
+          bevelEnabled: true,
+          bevelThickness: 0.03,
+          bevelSize: 0.02,
+          bevelSegments: 5
+        })
+        // const shapes = font.generateShapes(data.label, 12)
+        // const geometry = new THREE.ShapeGeometry(shapes)
+        geometry.computeBoundingBox()
+        const material = new THREE.MeshBasicMaterial( { color: legend[data.legend] } )
+        const text = new THREE.Mesh( geometry, material )
+        text.position.set(data.x,data.y+0.5,0)
+        return text
+      }
+      function renderText(){
+        const loader = new FontLoader()
+        loader.load( 'https://registry.npmmirror.com/three/0.160.0/files/examples/fonts/helvetiker_regular.typeface.json', function ( font ) {
+          vertexs.forEach(item=>{
+            scene.add(textGeometry(font, item))
+          })
+          renderer.render( scene, camera )
+        })
       }
     </script>
 </body>
