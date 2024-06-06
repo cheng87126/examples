@@ -1,1 +1,1 @@
-assets = ["assets/*"]
+assets = ["assets/*","frontend/build/*"]

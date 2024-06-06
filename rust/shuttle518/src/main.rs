@@ -21,6 +21,9 @@ mod url;
 mod user;
 mod image;
 
+async fn app() -> impl Responder {
+    NamedFile::open_async("frontend/build/index.html").await
+}
 #[get("/")]
 async fn index_page() -> impl Responder {
     NamedFile::open_async("assets/index.html").await
@@ -98,7 +101,8 @@ async fn main(
                 .wrap(middleware::Logger::default()),
         )
         .service(Files::new("/static", "./assets/static/"))
-        .service(web::scope("").service(index_page).service(login_page));
+        .service(web::scope("").service(index_page).service(login_page))
+        .default_service(web::to(app));
     };
 
     Ok(config.into())
