@@ -101,6 +101,7 @@ async fn main(
                 .wrap(middleware::Logger::default()),
         )
         .service(Files::new("/static", "./assets/static/"))
+        .service(Files::new("/_next", "./frontend/build/_next"))
         .service(web::scope("").service(index_page).service(login_page))
         .default_service(web::to(app));
     };
