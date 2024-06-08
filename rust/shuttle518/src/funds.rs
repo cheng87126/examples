@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use actix_identity::Identity;
 use actix_web::{
     error, get, post,
@@ -21,14 +22,14 @@ struct GetFundName {
 struct FundQuery {
     id: i32,
 }
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct ResDataItem {
     date: String,
     // nav : String,
     // percentage : String,
     value: String,
 }
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct ResData {
     // current_page : i32,
     items: Vec<ResDataItem>,
@@ -36,7 +37,7 @@ struct ResData {
     // total_items : i32,
     // total_pages : i32
 }
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct Res<T> {
     data: T,
     // result_code: i32
@@ -70,6 +71,32 @@ struct Fund {
     pub amount: Decimal,
     pub tranche: Decimal,
 }
+impl Fund {
+    fn calc(&self,res:&Res<ResData>) -> ResFund {
+        let start_time = self.buy_date;
+        let end_time: NaiveDate =
+            NaiveDate::parse_from_str(&res.data.items[0].date, "%Y-%m-%d").unwrap();
+        let diff_day = (end_time - start_time).num_days();
+        let new_val = Decimal::from_str(&res.data.items[0].value).unwrap();
+        let _old_val = self.price;
+        let n = self.tranche;
+        let total = new_val * n - self.amount;
+        let unit = dec!(10000) / self.amount * total / Decimal::from_i64(diff_day).unwrap();
+        let year = unit * dec!(365) / dec!(100);
+
+        return ResFund {
+            id: self.id,
+            code: self.code.to_owned(),
+            name: self.fund_name.to_owned(),
+            buy_date: self.buy_date,
+            date: end_time,
+            amount: self.amount,
+            total,
+            unit,
+            year,
+        };
+    }
+}
 #[derive(Debug, FromRow, Serialize)]
 struct FundDetail {
     pub id: i32,
@@ -86,6 +113,7 @@ struct ResFund {
     pub code: String,
     pub name: String,
     pub buy_date: NaiveDate,
+    date: NaiveDate,
     pub amount: Decimal,
     pub total: Decimal,
     pub unit: Decimal,
@@ -135,8 +163,14 @@ pub async fn get_funds(
             .fetch_all(&state.pool)
             .await
             .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
+        let mut codes = HashMap::new();
         let mut funds: Vec<ResFund> = Vec::new();
         for r in rows {
+            if let Some(val) = codes.get(&r.code){
+                funds.push(r.calc(val));
+                continue;
+            }
+
             let url = format!(
                 "https://danjuanfunds.com/djapi/fund/nav/history/{}?page=1&size=1",
                 r.code
@@ -150,6 +184,9 @@ pub async fn get_funds(
             if resp.data.items.len() == 0 {
                 continue;
             }
+            codes.insert(r.code.to_owned(), resp.clone());
+            funds.push(r.calc(&resp));
+            /*
             let start_time = r.buy_date;
             let end_time: NaiveDate =
                 NaiveDate::parse_from_str(&resp.data.items[0].date, "%Y-%m-%d").unwrap();
@@ -165,11 +202,13 @@ pub async fn get_funds(
                 code: r.code,
                 name: r.fund_name,
                 buy_date: r.buy_date,
+                date: end_time,
                 amount: r.amount,
                 total,
                 unit,
                 year,
             });
+            */
         }
         Ok(web::Json(funds))
     } else {
