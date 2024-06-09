@@ -3,6 +3,9 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import Layout from '../components/layout'
 import { fetcher } from '@/utils'
+import { ConfigProvider } from 'antd'
+import zhCN from 'antd/locale/zh_CN'
+import 'dayjs/locale/zh-cn'
 
 export default function App({ Component, pageProps }: AppProps) {
 
@@ -13,6 +16,7 @@ export default function App({ Component, pageProps }: AppProps) {
         fetcher
       }}
     >
+      <ConfigProvider locale={zhCN}>
       {(Component as any).getLayout
         ? (Component as any).getLayout(<Component {...pageProps} />)
         : (
@@ -21,6 +25,7 @@ export default function App({ Component, pageProps }: AppProps) {
           </Layout>
         )
       }
+      </ConfigProvider>
     </SWRConfig>
   )
 }
