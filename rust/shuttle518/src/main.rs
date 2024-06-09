@@ -6,6 +6,7 @@ use actix_web::{
     error, get, middleware,
     web::{self, ServiceConfig},
     Responder,
+    HttpRequest
 };
 use shuttle_actix_web::ShuttleActixWeb;
 
@@ -21,8 +22,11 @@ mod url;
 mod user;
 mod image;
 
-async fn app() -> impl Responder {
-    NamedFile::open_async("frontend/build/index.html").await
+async fn app(req: HttpRequest) -> impl Responder {
+    // /app/index.html /app//index.html
+    let path = format!("{}/index.html",req.path());
+    // NamedFile::open_async("frontend/build/index.html").await
+    NamedFile::open_async(path.replace("/app", "frontend/build")).await
 }
 #[get("/")]
 async fn index_page() -> impl Responder {

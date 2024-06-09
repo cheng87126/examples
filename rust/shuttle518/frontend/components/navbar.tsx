@@ -6,8 +6,8 @@ export default function Navbar(){
   const router = useRouter()
   const items = [
     {
-      key: '/',
-      label: <Link href="/">home</Link>
+      key: '/app',
+      label: <Link href="/app">home</Link>
     },
     {
       key: '/image',
