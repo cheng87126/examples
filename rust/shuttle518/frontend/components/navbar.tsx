@@ -10,6 +10,10 @@ export default function Navbar(){
       label: <Link href="/app">home</Link>
     },
     {
+      key: '/favorites',
+      label: <Link href="/favorites">favorites</Link>
+    },
+    {
       key: '/image',
       label:<Link href="/image">image</Link>
     }

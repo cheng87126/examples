@@ -24,7 +24,7 @@ const disabledDate: RangePickerProps['disabledDate'] = (current) => {
 }
 
 export default forwardRef(function AddorEdit({editId,cb}:Props,ref){
-  const { data, isLoading } = useSWR(editId?{url:'/api/getFund',data:{id:editId}}:null,{revalidateOnFocus:false})
+  const { data={}, isLoading } = useSWR(editId?{url:'/api/getFund',data:{id:editId}}:null,{revalidateOnFocus:false})
   const [form] = Form.useForm()
 
   const onFinish = async function(val:FieldType){
@@ -66,51 +66,51 @@ export default forwardRef(function AddorEdit({editId,cb}:Props,ref){
   return (
     <Form
       form={form}
-      initialValues={{ buy_date:dayjs(buy_date), ...rest }}
+      initialValues={editId?{ buy_date:dayjs(buy_date), ...rest }:{}}
       onFinish={onFinish}
       autoComplete="off"
     >
       <Form.Item<FieldType>
         label="基金代码"
         name="code"
-        rules={[{ required: true, message: '请输入' }]}
+        rules={[{ required: true, message: '请输入基金代码' }]}
       >
-        <Input onBlur={onBlur} />
+        <Input placeholder="请输入基金代码" onBlur={onBlur} />
       </Form.Item>
       <Form.Item<FieldType>
         label="基金名称"
         name="fund_name"
-        rules={[{ required: true, message: '请输入' }]}
+        rules={[{ required: true, message: '请输入基金名称' }]}
       >
-        <Input />
+        <Input placeholder="请输入基金名称" />
       </Form.Item>
       <Form.Item<FieldType>
         label="买入日期"
         name="buy_date"
-        rules={[{ required: true, message: '请输入' }]}
+        rules={[{ required: true, message: '请选择买入日期' }]}
       >
         <DatePicker disabledDate={disabledDate} format="YYYY-MM-DD" className="w-full" />
       </Form.Item>
       <Form.Item<FieldType>
         label="确认金额"
         name="amount"
-        rules={[{ required: true, message: '请输入' }]}
+        rules={[{ required: true, message: '请输入确认金额' }]}
       >
-        <Input />
+        <Input placeholder="请输入确认金额" />
       </Form.Item>
       <Form.Item<FieldType>
         label="确认净值"
         name="price"
-        rules={[{ required: true, message: '请输入' }]}
+        rules={[{ required: true, message: '请输入确认净值' }]}
       >
-        <Input />
+        <Input placeholder="请输入确认净值" />
       </Form.Item>
       <Form.Item<FieldType>
         label="确认份额"
         name="tranche"
-        rules={[{ required: true, message: '请输入' }]}
+        rules={[{ required: true, message: '请输入确认份额' }]}
       >
-        <Input />
+        <Input placeholder="请输入确认份额" />
       </Form.Item>
     </Form>
   )

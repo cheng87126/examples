@@ -12,6 +12,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <SWRConfig 
       value={{
+        errorRetryCount:3,
         focusThrottleInterval: 1000*60*2,
         fetcher
       }}

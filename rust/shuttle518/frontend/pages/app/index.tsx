@@ -9,7 +9,7 @@ export default function Home() {
   const [editId, setEditId] = useState(0)
 
   const { data, isLoading } = useSWR({url:'/api/getFunds'})
-  // const { data:urlsData } = useSWR({url:'/api/getUrls'})
+
   const showModal = () => {
     setIsModalOpen(true)
   }
