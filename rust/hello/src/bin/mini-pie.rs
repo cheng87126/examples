@@ -1,4 +1,4 @@
-use std::env;
+use std::{collections::HashMap, env};
 
 enum Methods{
     GET,
@@ -18,6 +18,9 @@ async fn main(){
         //     .text()?;
 
         get(&args[2],&get_query(&args)).await.unwrap();
+    }
+    if args[1] == "post" {
+        post(&args[2],&get_query(&args)).await.unwrap();
     }
 }
 fn get_query(args:&Vec<String>)->Vec<(String,String)>{
@@ -42,6 +45,20 @@ async fn get(url:&str,query:&Vec<(String,String)>)->Result<(),reqwest::Error>{
     for (k,v) in header {
         println!("{}:{:?}",k,v);
     }
+    let body = res.text().await?;
+    println!("{body}");
+    Ok(())
+}
+async fn post(url:&str,data:&[(String,String)])->Result<(),reqwest::Error>{
+    let mut map = HashMap::new();
+    for (k,v) in data{
+        map.insert(k, v);
+    }
+    let client = reqwest::Client::new();
+    let res = client.post(url)
+        .json(&map)
+        .send()
+        .await?;
     let body = res.text().await?;
     println!("{body}");
     Ok(())

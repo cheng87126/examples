@@ -10,4 +10,4 @@ test = false
 bench = false
 [dependencies]
 tokio = { version = "1.38.0", features = ["full"] }
-reqwest = { version = "0.12.4", features = ["blocking"] }
+reqwest = { version = "0.12.4", features = ["blocking","json"] }
