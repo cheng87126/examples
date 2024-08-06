@@ -1,16 +1,32 @@
 use std::{collections::HashMap, env};
+use colored::Colorize;
+use clap::{Parser, Subcommand, Args};
 
+#[derive(Parser,Debug)]
+#[command(version, about, long_about = None)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Methods>
+}
+#[derive(Subcommand,Debug)]
 enum Methods{
-    GET,
-    POST,
+    GET(CliArgs),
+    POST(CliArgs),
     PUT,
     DELETe
 }
+#[derive(Args,Debug)]
+struct CliArgs{
+    url:String,
+    body:Vec<String>
+}
+
 #[tokio::main]
 async fn main(){
+    let cli = Cli::parse();
+    println!("{:?}",cli);
     // [flags] [METHOD] URL [ITEM [ITEM]]
     let args: Vec<String> = env::args().collect();
-    println!("{:?}",args);
     // dbg!(args);
     if args[1] == "get" {
         // let body = reqwest::blocking::get("https://www.rust-lang.org")?
@@ -46,7 +62,7 @@ async fn get(url:&str,query:&Vec<(String,String)>)->Result<(),reqwest::Error>{
         println!("{}:{:?}",k,v);
     }
     let body = res.text().await?;
-    println!("{body}");
+    print_body(body);
     Ok(())
 }
 async fn post(url:&str,data:&[(String,String)])->Result<(),reqwest::Error>{
@@ -60,6 +76,10 @@ async fn post(url:&str,data:&[(String,String)])->Result<(),reqwest::Error>{
         .send()
         .await?;
     let body = res.text().await?;
-    println!("{body}");
+    print_body(body);
     Ok(())
+}
+
+fn print_body(str:String){
+    println!("{}",str.cyan());
 }

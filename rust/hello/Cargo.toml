@@ -9,5 +9,7 @@ name = "mini-pie"
 test = false
 bench = false
 [dependencies]
+colored = "2.1.0"
 tokio = { version = "1.38.0", features = ["full"] }
 reqwest = { version = "0.12.4", features = ["blocking","json"] }
+clap = { version = "4.5.13", features = ["derive"] }
