@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env};
+use std::collections::HashMap;
 use colored::Colorize;
 use clap::{Parser, Subcommand, Args};
 
@@ -24,19 +24,16 @@ struct CliArgs{
 #[tokio::main]
 async fn main(){
     let cli = Cli::parse();
-    println!("{:?}",cli);
-    // [flags] [METHOD] URL [ITEM [ITEM]]
-    let args: Vec<String> = env::args().collect();
-    // dbg!(args);
-    if args[1] == "get" {
-        // let body = reqwest::blocking::get("https://www.rust-lang.org")?
-        //     .query(&[("foo", "a"), ("foo", "b")])?
-        //     .text()?;
-
-        get(&args[2],&get_query(&args)).await.unwrap();
-    }
-    if args[1] == "post" {
-        post(&args[2],&get_query(&args)).await.unwrap();
+    if let Some(method) = cli.command {
+        match method {
+            Methods::POST(args)=>{
+                get(&args.url,&get_query(&args.body)).await.unwrap();
+            },
+            Methods::GET(args)=>{
+                post(&args.url,&get_query(&args.body)).await.unwrap();
+            },
+            _=>{}
+        }
     }
 }
 fn get_query(args:&Vec<String>)->Vec<(String,String)>{
