@@ -75,6 +75,7 @@ async fn main(
     // ```
     let state = web::Data::new(AppState { pool });
     let secret_key = Key::generate();
+    let fund_cache = funds::create_fund_cache();
 
     let config = move |cfg: &mut ServiceConfig| {
         cfg.service(
@@ -93,6 +94,7 @@ async fn main(
                 .service(funds::get_fund_name)
                 .service(image::process_image)
                 .app_data(state)
+                .app_data(fund_cache)
                 .wrap(IdentityMiddleware::default())
                 .wrap(
                     SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())

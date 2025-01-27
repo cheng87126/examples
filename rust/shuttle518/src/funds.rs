@@ -30,7 +30,7 @@ struct ResDataItem {
     value: String,
 }
 #[derive(Debug, Clone, Deserialize)]
-struct ResData {
+pub struct ResData {
     // current_page : i32,
     items: Vec<ResDataItem>,
     // size : i32,
@@ -38,7 +38,7 @@ struct ResData {
     // total_pages : i32
 }
 #[derive(Debug, Clone, Deserialize)]
-struct Res<T> {
+pub struct Res<T> {
     data: T,
     // result_code: i32
 }
@@ -127,6 +127,12 @@ struct FdName {
 struct NameRes {
     data: Vec<FdName>,
 }
+
+pub fn create_fund_cache()->HashMap<String, Res<ResData>>{
+    let cache:HashMap<String, Res<ResData>> = HashMap::new();
+    cache
+}
+
 #[post("/addFund")]
 pub async fn add_fund(
     state: web::Data<AppState>,
