@@ -1,44 +1,54 @@
+use std::mem;
+#[derive(Debug)]
+pub struct ListNode<T>{
+    value: T,
+    next: Option<Box<ListNode<T>>>
+}
 #[derive(Debug)]
 pub struct SimpleLinkedList<T> {
-    // Delete this field
-    // dummy is needed to avoid unused parameter error during compilation
-    // dummy: ::std::marker::PhantomData<T>,
-    value: Option<T>,
-    next: Option<Box<SimpleLinkedList<T>>>
+    size: usize,
+    head: Option<Box<ListNode<T>>>
 }
 
 impl<T:std::fmt::Debug> SimpleLinkedList<T> {
     pub fn new() -> Self {
         SimpleLinkedList {
-            value:None,
-            next:None
+            size:0,
+            head:None
         }
     }
 
-    // You may be wondering why it's necessary to have is_empty()
-    // when it can easily be determined from len().
-    // It's good custom to have both because len() can be expensive for some types,
-    // whereas is_empty() is almost always cheap.
-    // (Also ask yourself whether len() is expensive for SimpleLinkedList)
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
-    pub fn len(&self) -> usize {        
-        if self.value.is_none() {
-            return 0;
-        }else {
-            let mut len = 0;
-            let mut next = &self.next;
-            while let Some(n) = next {
-                len += 1;
-                next = &n.next;
-            }
-            return len;
-        }
+    pub fn len(&self) -> usize {
+        self.size
     }
 
     pub fn push(&mut self, element: T) {
+        self.size += 1;
+        match self.head {
+            Some(ref mut head) => {
+                let mut curr = &mut head.next;
+                while let Some(n) = curr {
+                    curr = &mut n.next;
+                }
+                *curr = Some(Box::new(
+                    ListNode {
+                        value:element,
+                        next:None
+                    }
+                ));
+            },
+            None => {
+                self.head = Some(Box::new(ListNode {
+                    value:element,
+                    next:None
+                }));
+            }
+        }
+        /*
         if self.value.is_none() {
             self.value = Some(element);
         }else {
@@ -52,15 +62,45 @@ impl<T:std::fmt::Debug> SimpleLinkedList<T> {
             };
             *next = Some(Box::new(node));
         }
+        */
         // println!("{:?}",self)
     }
 
     pub fn pop(&mut self) -> Option<T> {
+        match self.head {
+            Some(ref mut head) => {
+                self.size -= 1;
+                let head_ptr: *mut Box<ListNode<T>> = &mut *head;
+                unsafe {
+                    let h = **head_ptr;
+                }
+                /*
+                let mut prev = &mut *head;
+                let mut curr = &mut head.next;
+                while curr.is_some() && curr.unwrap().next.is_some() {
+                    let prev = *curr;
+                    curr = &mut curr.unwrap().next;
+                }
+                */
+                None
+            },
+            None => None
+        }   
+        /*
+        match mem::replace(&mut self.head, None) {
+            None => None,
+            Some(node) => {
+                self.head = node.next;
+                Some(node.value)
+            }
+        }
+        */
+        /*
         if self.value.is_none() {
             None
         }else {
-            let prev = self;
-            let mut next = &mut self.next;
+            let prev = &mut *self;
+            let mut next = &self.next;
             while let Some(n) = next {
                 println!("{:?}---n---{:?}",prev,n);
                 *prev = **n;
@@ -69,9 +109,12 @@ impl<T:std::fmt::Debug> SimpleLinkedList<T> {
             *next = None;
             None
         }
+        */
     }
 
     pub fn peek(&self) -> Option<&T> {
+        None
+        /*
         if self.value.is_none() {
             None
         }else {
@@ -84,6 +127,7 @@ impl<T:std::fmt::Debug> SimpleLinkedList<T> {
             }
             return None;
         }
+        */
     }
 
     #[must_use]
@@ -97,20 +141,18 @@ impl<T> FromIterator<T> for SimpleLinkedList<T> {
         todo!()
     }
 }
-
-// In general, it would be preferable to implement IntoIterator for SimpleLinkedList<T>
-// instead of implementing an explicit conversion to a vector. This is because, together,
-// FromIterator and IntoIterator enable conversion between arbitrary collections.
-//
-// The reason this exercise's API includes an explicit conversion to Vec<T> instead
-// of IntoIterator is that implementing that interface is fairly complicated, and
-// demands more of the student than we expect at this point in the track.
-//
-// Please note that the "front" of the linked list should correspond to the "back"
-// of the vector as far as the tests are concerned.
-
 impl<T> From<SimpleLinkedList<T>> for Vec<T> {
     fn from(mut _linked_list: SimpleLinkedList<T>) -> Vec<T> {
         todo!()
     }
+}
+
+
+fn main() {
+    let mut nodes = SimpleLinkedList::new();
+    nodes.push(0);
+    nodes.push(1);
+    nodes.push(2);
+    println!("{:?}",nodes);
+    
 }
