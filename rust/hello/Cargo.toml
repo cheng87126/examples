@@ -3,7 +3,7 @@ name = "hello"
 version = "0.1.0"
 edition = "2021"
 [workspace]
-members = [ "disk", "future",
+members = [ "disk", "future", "get_assets",
     "query"
 , "simple_linked_list"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

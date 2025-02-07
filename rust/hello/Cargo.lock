@@ -602,6 +602,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "get_assets"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "tokio",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
