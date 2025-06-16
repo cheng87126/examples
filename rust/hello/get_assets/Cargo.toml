@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 tokio = { workspace = true }
 reqwest = { workspace = true }
+scraper = "0.22.0"
